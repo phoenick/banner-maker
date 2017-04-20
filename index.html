@@ -128,7 +128,7 @@
                             <a type="button" class="btn btn-default">Original Size</a>
                             <a type="button" class="btn btn-default">Duplicate</a>
                             <a type="button" class="btn btn-default">Center Horiz.</a>
-                            <a type="button" class="btn btn-default">Center Vert.</a>
+                            <a type="button" class="btn btn-default"><i class="fa fa-times" aria-hidden="true"></i>&nbsp;Delete</a>
                         </div> 
                     </div>
                       
@@ -143,20 +143,23 @@
                                     <a type="button" class="btn btn-default">Center Vert.</a>
                                 </div>-->
                             </div>
-                            <canvas id="canvasp" width="728" height="280" style="width: 728px; height: 280px;">
+                            <div data-bind="canvas: slide"> 
+                                
+                            </div>
+                            <!--<canvas id="canvasp" width="728" height="280" style="width: 728px; height: 280px;">
 
-                            </canvas>
+                            </canvas>-->
                         </div>
                     </div>
                     <div class="nbtn-group btn-group-lg banner-toolbar" role="group" aria-label="...">
-                        <a type="button" class="btn btn-primary">Add Image</a>
+                        <a data-bind="click: uploadImage" type="button" class="btn btn-primary">Add Image</a>
                         <a type="button" class="btn btn-primary">Add Text</a>
                         <a type="button" class="btn btn-default">Background: Color &nbsp; <i class="fa fa-image" aria-hidden="true"></i></a>
                         <a type="button" class="btn btn-default">Add Shape</a>
                         <a type="button" class="btn btn-default">
                             <i class="fa fa-times" aria-hidden="true"></i>&nbsp;Clear
                         </a>
-                        
+                        <input id="choose-file" type="file" name="imageField" hidden="true" style="display:none;" />
                     </div>
                 </div>
 
