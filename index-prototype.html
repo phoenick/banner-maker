@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="favicon.ico">
+
+    <title>Banner Maker</title>
+
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.5/css/bootstrap.min.css" integrity="sha384-AysaV+vQoT3kOAXZkl02PThvDr8HYKPZhNT5h/CXfBThSRXQ6jW5DO2ekP5ViFdi" crossorigin="anonymous">
+
+    <link rel='stylesheet prefetch' href='https://netdna.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.css'>
+    <link rel='stylesheet prefetch' href='https://fonts.googleapis.com/css?family=Dosis|Candal'>
+
+    <!-- Custom styles for this template -->
+    <nlink href="css/jumbotron.css" rel="stylesheet">
+    <link href="banner-maker.css" rel="stylesheet">
+    <link href="textbar.css" rel="stylesheet">
+    <link href="css/bootstrap-colorselector.css" rel="stylesheet">
+    <link rel='stylesheet' href='css/spectrum.css' />
+  </head>
+
+  <body>
+    <div style="background-color: #333333">
+      <div class="container" >
+
+        <ul class="nav">
+          
+
+          <li><a href="https://conferience.com/">Conferience</a></li>
+          <li >
+             <div class="dropdown show">
+              <a class="btn dropdown-toggle my-banners" href="https://example.com" id="dropdownMenuLink" style="display:none;" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                My Banners
+              </a>
+
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                <a class="dropdown-item" href="javascript:;"><span class="action"> Open: </span> Action </a>
+                <a class="dropdown-item" href="javascript:;"><span class="action"> Open: </span>Another action</a>
+                <a class="dropdown-item" href="javascript:;">Close</a>
+              </div>
+            </div>
+          </li>
+          <li><a id="loggedin-user" href="javascript:;" style="display:none;" onclick="location.reload()">
+            <i class="fa fa-user" style="color:#0275d8;"> </i>
+            <span class="username"> Username </span> (<span style="color:#0275d8;"> logout </span>)</a>
+
+          </li>
+          <!--<li><a href="#about">About</a></li>-->
+        </ul>
+      </div>
+    </div>
+    <!--<nav class="navbar navbar-static-top navbar-dark bg-inverse">
+      <a class="navbar-brand" href="javascript:;">Banner Maker</a>
+      <ul class="nav navbar-nav">
+        <li class="nav-item active">
+          <a class="nav-link" href="https://conferience.com/">Home <span class="sr-only">(current)</span></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="javascript:;" style="display:none;">About</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="javascript:;" style="display:none;">Contact</a>
+        </li>
+      </ul>
+    </nav>-->
+
+    <!-- Main jumbotron for a primary marketing message or call to action -->
+    <div class="jumbotron" style="padding:1rem 1rem;position:relative;">
+      <div class="container">
+
+        <h1 class="display-5 logo-title" style="position:relative;">
+          <img src="squirrel.png" style="width:100px;height:110px;position:absolute;top:-7px;left:-110px;">
+          Banner Maker
+          <div class="logo-poweredby">
+          <div class="ncol-xs-12 nmg-btn-mg">
+            <button class="btn btn-default btn-xs btn-block poweredBy" data-toggle="modal" data-target="#poweredByConferience"
+              style="background: none;border-left: none; border-right: none;">
+              <p class="text-center conf-vertical-align">Powered by <span class="mg-confer-clr">Confer<span class="mg-confer-clr-2">i</span>ence.com</span> ©<span class="text-muted"> | contact us</span></p></button>
+          </div>
+        </div>
+        </h1>
+        <p class="logo-text">
+          Creating custom gif and html banners.
+        </p>
+
+      </div>
+    </div>
+
+
+    <div class="container">
+      <!-- Example row of columns -->
+      <div class="row">
+        <div class="col-md-4">
+          <h3>Slides</h3><hr/>
+          <div id="previews-container">
+
+            <!--<div class="slide-preview">
+              <div class="slide-thumb" style=""> </div>
+              <p class="preview-toolbar">
+                <span> Slide 1 </span>
+                <input class="" type="checkbox" name="check1" value="">
+                <a  class="btn btn-secondary" href="#" role="button">Duplicate</a>
+                <a  class="btn btn-secondary" href="#" role="button">Del</a>
+                <input type="text" class="form-control delay" placeholder="Delay: 1s">
+              </p>
+            </div>-->
+          </div>
+          <a id="add-slide" class="btn btn-secondary" style="float: right;" href="javascript:;">Add Slide</a>
+
+        </div>
+        <div class="col-md-8">
+          <h3 style="position:relative;">Slide Editor: <span id="editor-slideno" style="color:grey"> Slide 1 </span>
+          <a id="undo" href="javascript:;" class="btn btn-secondary disabled"> Undo </a>
+          <a id="redo"href="javascript:;" class="btn btn-secondary disabled"> Redo </a>
+            <div style="display:inline-block;position:absolute;right:10px;bottom:0px;font-size:20px;"><span style="color:gray;"> size:</span>
+            <select class="form-control" id="select-size2" style="">
+              <optgroup label="Size">
+                <option value="728x280" selected>728x280</option>
+                <option value="728x90">728x90</option>
+                <option value="468x60">468x60</option>
+                <option value="336x280">336x280</option>
+                <option value="300x250">300x250</option>
+                <option value="Custom...">Custom...</option>
+              </optgroup>
+            </select>
+             </div>
+          </h3><hr/>
+          <div id="banner-container" class="">
+            <!--<div id="banner-editor" class="effect7 slide current">
+                <div class="draggable imgDiv tbox unselectable">
+                  //todo: strange behaviour both like this AND swapped statements below
+                  <img class="upl-image unselectable" id="testimg" src="empty.png"/>
+                  <div class="resize-handle"> </div>
+                </div>
+                <div class="draggable imgDiv">
+                  <h2 style="padding:5px 8px;">This is a sample text</h2>
+                </div>
+            </div>-->
+            <div></div>
+          </div>
+            <div class="mn-actions">
+              <a id="add-image" class="btn btn-secondary" href="javascript:;" role="button"><span class="glyphicon glyphicon-picture"> </span> Add Image</a>
+              <a id="add-text" class="btn btn-secondary" href="javascript:;" role="button"><span class="glyphicon glyphicon-text-width"> </span> Add Text</a>
+
+              <a id="background" class="btn btn-secondary" href="javascript:;" role="button">
+              <div style="display:inline-block;width:144px;position:relative;top:2px;"> Background Color</div>
+              <input type="text" id="bg-color-select" />
+              <!--<select class="" id="bgcolorselector" style="display: inline;">
+                  <option value="106" data-color="#A0522D">sienna</option>
+                  <option value="47" data-color="#CD5C5C">indianred</option>
+                  <option value="87" data-color="#FF4500">orangered</option>
+                  <option value="17" data-color="#008B8B">darkcyan</option>
+                  <option value="18" data-color="#B8860B">darkgoldenrod</option>
+                  <option value="68" data-color="#32CD32">limegreen</option>
+                  <option value="42" data-color="#FFD700">gold</option>
+                  <option value="77" data-color="#48D1CC">mediumturquoise</option>
+                  <option value="107" data-color="#87CEEB">skyblue</option>
+                  <option value="46" data-color="#FF69B4">hotpink</option>
+                  <option value="47" data-color="#CD5C5C">indianred</option>
+                  <option value="64" data-color="#87CEFA">lightskyblue</option>
+                  <option value="13" data-color="#6495ED">cornflowerblue</option>
+                  <option value="15" data-color="#DC143C">crimson</option>
+                  <option value="24" data-color="#FF8C00">darkorange</option>
+                  <option value="78" data-color="#C71585">mediumvioletred</option>
+                  <option value="123" data-color="#000000">black</option>
+                  <option value="124" data-color="#ffffff" selected="selected">white</option>
+                </select>-->
+                <span class="glyphicon nglyphicon-picture" style="position:relative;top:4px;"> </span>
+              </a>
+
+
+
+              <a id="clear-slide" class="btn btn-secondary clear-slide" href="javascript:;" role="button"><span class="glyphicon glyphicon-remove"> </span> Clear Slide</a>
+              <br>
+              <div id="url-cover" class=""
+                  style="position:absolute;top:52px;left:60px;margin:3px;width:360px;background-color:white;"> Url Only Available on Html Banners </div>
+
+              <b>URL <span class="url-no">1</span>:</b> <input id="url" class="form-control" style="display:inline;width:378px;" type="text" value="ex: http://www.somesite.com"/>
+              <div style="display:inline-block;nwidth:143px"> </div>
+              <input id="choose-file" type="file" name="picField" hidden />
+
+              
+              <a id="download-banner" class="btn" download="banner.gif" href="javascript:;" style="display:none;">sad</a>
+              
+			  <hr style="margin: 3px 0px;">
+			  <div class="welcome">
+				Banner: <input type="text" value="untitled"/>
+				<a id="save-before-login" href="javascript:;" class="btn btn-primary" style="nbackground-color: #2e9abd;text-shadow: 1px 1px 2px #000000;">Save</a>
+				
+				<a id="save-banner" href="javascript:;" class="btn btn-primary " style="display:none;nbackground-color:#2e9abd;text-shadow: 1px 1px 2px #000000;">Save</a>
+				<a id="new-banner" href="javascript:;" class="btn btn-primary " style="display:none;nbackground-color:#2e9abd;text-shadow: 1px 1px 2px #000000;">New Banner</a> <br>
+				<span class="nav-msg"> </span>
+			  </div>
+			  
+			  <select class="form-control" id="banner-type" style="">
+                <optgroup label="Banner Type">
+                  <option selected>Gif</option>
+                  <option>Html</option>
+                </optgroup>
+              </select>
+              <a id="create-banner" class="btn btn-success disabled" style="margin:7px 0px;width: 173px;" href="javascript:;" role="button">Download Banner</a>
+			  
+			  <div id="message"></div>
+              <form id="upload-form" action="upload_image.php" method="post" style="display:none;">
+                <input id="upload-image" type="text" name="lastname" value="Mouse" hidden><br><br>
+                <input type="submit" value="Submit">
+              </form>
+
+            </div>
+            <div class="last-actions" style="margin-top:20px;">
+              <div class="container">
+                <div class="col-md-6">
+
+                </div>
+                <div class="col-md-6" >
+                  <!--<div class="row" style="text-align:right;">
+                    <select class="form-control" id="banner-type" style="">
+                      <optgroup label="Banner Type">
+                        <option selected>Gif</option>
+                        <option>Html</option>
+                      </optgroup>
+                    </select>
+
+                    <a id="create-banner" class="btn btn-success disabled" style="margin:7px 0px;nbackground-color:lightgreen;ncolor:black;" href="#" role="button">Create Banner</a>
+                    <a id="download-banner" class="btn" download="banner.gif" href="#" style="display:none;">sad</a>
+                    <div id="message"></div>
+                    <form id="upload-form" action="upload_image.php" method="post" style="display:none;">
+                      <input id="upload-image" type="text" name="lastname" value="Mouse" hidden><br><br>
+                      <input type="submit" value="Submit">
+                    </form>
+                  </div>-->
+                </div>
+
+            </div>
+       </div>
+      </div>
+
+      <hr>
+
+
+    </div> <!-- /container -->
+
+    <div class="container">
+      <!--<div class="row">
+        <div class="col-xs-12 mg-btn-mg">
+          <button class="btn btn-default btn-xs btn-block" data-toggle="modal" data-target="#poweredByConferience"><p class="text-center conf-vertical-align">Powered by <span class="mg-confer-clr">Confer<span class="mg-confer-clr-2">i</span>ence.com</span> ©<img src="images/squirrel.png" class=" minified-logo"><span class="text-muted"> | contact us</span></p></button>
+        </div>
+      </div>-->
+      <div class="row">
+
+        <footer>
+          <hr>
+          <!--<p>Powered by Conferience.com &copy; Copyright 2017, All rights reserved</p>-->
+        </footer>
+        <!--<a id="dragpos" class="btn btn-secondary" href="javascript:;"> Drag pos</a>-->
+
+      </div>
+    </div>
+    <!-- The Modal -->
+    <div id="myModal" class="modal">
+      <!-- Modal content -->
+      <!-- Modal 1 ++++++-->
+      <div class="modal-content modal1">
+        <h3> Create a new banner </h3><hr/>
+        <!-- <span class="close">&times;</span>-->
+        <p class="suggest attention hidden">
+          Changing the size will create a new banner and the old one will be deleted! <br>
+          If you don't want to lose the current banner, please save it first.
+        </p>
+        <p class="suggest">Please choose a <b>size</b> for the new banner:
+          <select class="form-control" id="select-size" style="">
+            <optgroup label="Size">
+              <option value="728x280" selected>728x280</option>
+              <option value="728x90">728x90</option>
+              <option value="468x60">468x60</option>
+              <option value="336x280">336x280</option>
+              <option value="300x25">300x250</option>
+              <option value="Custom...">Custom...</option>
+            </optgroup>
+          </select>
+          <input type="text" class="form-control dim" style="display:none;" placeholder="width">
+          <span class="times">x</span>
+          <input type="text" class="form-control dim" style="display:none;"placeholder="height">
+
+        </p>
+        <!--<p class="suggest">Please choose a <b>name</b> for the new banner:
+          <input id="new-banner-name" type="text" class="form-control dim" style="width: 155px;" placeholder="new banner name">
+        </p>-->
+        <hr/>
+        <p>
+          <a id="begin-editing" class="btn btn-primary" style="float: right;" href="javascript:;" role="button">Create Banner</a>
+          <a id="" class="btn btn-secondary cancel-create hidden" style="float: right;" href="javascript:;" role="button">Cancel</a>
+        </p>
+        <div style="clear:both;"></div>
+      </div>
+      <!-- Modal 2 ++++++-->
+      <div class="modal-content modal2" style="display:none;">
+        <h3> Attention: <span style="color:brown;"> Slide Deletion </span> </h3><hr/>
+
+        <p class="suggest">
+          Are you sure you want to <b>delete</b> Slide <span class="m2-data"> </span>?
+          This action is not reversible!
+
+        </p>
+        <hr/>
+        <p>
+          <a id="delete-slide" class="btn btn-danger" style="float: right;" href="javascript:;">Delete</a>
+          <a id="cancel-delete" class="btn btn-secondary" style="float: right;" href="javascript:;">Cancel</a>
+        </p>
+        <div style="clear:both;"></div>
+      </div>
+      <!-- Modal 3 ++++++-->
+      <div class="modal-content modal3" style="display:none;">
+        <h3> Html Banner <span style="ncolor:brown;"></span> </h3><hr/>
+
+        <p class="suggest">
+          Just copy this html code and insert it to the webpage of your liking:
+        </p>
+        <textarea id="html-banner" rows="4">
+
+        </textarea>
+        <hr/>
+        <p>
+          <a id="done-html-banner" class="btn btn-secondary" style="float: right;" href="javascript:;">Done</a>
+        </p>
+        <div style="clear:both;"></div>
+      </div>
+      <!-- Modal 4 ++++++-->
+      <div class="modal-content modal4" style="display:none;">
+        <h3 class="modal-title"> Welcome to Banner Maker! </h3><hr/>
+        <!-- <span class="close">&times;</span>-->
+        <p class="suggest attention hidden">
+          Changing the size will create a new banner and the old one will be deleted! </p>
+        <p class="suggest">Please choose a <b>size</b> for the new banner:
+
+        </p>
+        <hr/>
+        <p>
+          <a id="" class="btn btn-primary modal-yes" style="float: right;" href="javascript:;" role="button">Yes</a>
+          <a id="" class="btn btn-secondary modal-no" style="float: right;" href="javascript:;" role="button">No</a>
+        </p>
+        <div style="clear:both;"></div>
+      </div>
+
+      <!-- Modal 5 ++++++-->
+      <div class="modal-content modal5" style="display:none;">
+        <h3> Login </h3><hr/>
+
+        <p class="suggest" style="text-align:center">
+            <input id="username-input" type="text" class="form-control" placeholder="Username" style="display:inline-block;width:250px;" > &nbsp
+            <input id="password-input" type="password" class="form-control" placeholder="Password" style="display:inline-block;width:250px;" >
+            <br><span id="login-err" style="display:none;color:red">  Please fill in all the required fields. </span>
+        </p>
+        <hr/>
+        <p>
+          <a id="login-do" class="btn btn-primary" style="float: right;" href="javascript:;">Login</a>
+          <a id="cancel-login" class="btn btn-secondary" style="float: right;" href="javascript:;">Cancel</a>
+        </p>
+        <div style="clear:both;"></div>
+		<p style="float:right;">
+			You don't have an account? You can <a id="register" href="javascript:;" class="btn btn-primary " >Register</a>
+		</p>
+		<div style="clear:both;"></div>
+      </div>
+
+      <!-- Modal 6 ++++++-->
+      <div class="modal-content modal6" style="display:none;">
+        <h3> Register a new account </h3><hr/>
+        <p>
+          By creating an account you get access to the full functionality of Banner Maker including
+          saving the editing state of your banners. 
+		  <em style="color: #2e9abd"> Please enter a valid email as the username. </em>
+        </p>
+        <p class="suggest" style="text-align:center">
+            <table style="width: 405px; margin:0 auto;">
+              <tr>
+                <td style="text-align:right;font-weight: bold;"> username: &nbsp</td>
+                <td> <input id="username-register" type="text" class="form-control" placeholder="username" ></td>
+              </tr>
+              <tr>
+                <td style="text-align:right;font-weight: bold;"> password: &nbsp</td>
+                <td> <input id="password-register" type="password" class="form-control" placeholder="password" ></td>
+              </tr>
+              <tr>
+                <td style="text-align:right;font-weight: bold;"> confirm password: &nbsp</td>
+                <td><input id="confirm-password-register" type="password" class="form-control" placeholder="confirm password" ></td>
+              </tr>
+              <!--<tr>
+                <td style="text-align:right;font-weight: bold;"> email: &nbsp</td>
+                <td> <input id="email-register" type="text" class="form-control" placeholder="email" > </td>
+              </tr>-->
+            </table>
+			
+            <br><span id="register-err" style="display:none;color:red">  Please fill in all the required fields. </span>
+        </p>
+        <hr/>
+        <p>
+          <a id="register-do" class="btn btn-primary" style="float: right;" href="javascript:;">Register</a>
+          <a id="cancel-register" class="btn btn-secondary" style="float: right;" href="javascript:;">Cancel</a>
+        </p>
+        <div style="clear:both;"></div>
+      </div>
+
+      <!-- Modal 7 ++++++-->
+      <div class="modal-content modal7" style="display:none;">
+        <h3> Contact <span style="color: #428bca"> Conferience.com </span></h3><hr/>
+        <p>
+          For more information, questions, remarks and feature requests, please contact us at
+          <a href="mailto:info@conferience.com"> info@conferience.com </a>
+        </p>
+        <p>
+          <a id="contact-ok" class="btn btn-primary" style="float: right;" href="javascript:;">Ok</a>
+        </p>
+        <div style="clear:both;"></div>
+      </div>
+
+    </div>
+  </div>
+  <div class="ncol-xs-12 nmg-btn-mg">
+    <button class="btn btn-default btn-xs btn-block poweredBy" data-toggle="modal" data-target="#poweredByConferience">
+      <p class="text-center conf-vertical-align">Powered by <span class="mg-confer-clr">Confer<span class="mg-confer-clr-2">i</span>ence.com</span> ©<img src="squirrel2.png" class=" minified-logo"><span class="text-muted"> | contact us</span></p></button>
+  </div>
+  <!--<div id="point1" style="position:absolute;width:16px;height:16px;background-color: red;z-index: 200;"></div>
+  <div id="point2" style="position:absolute;width:16px;height:16px;background-color: red;z-index: 200;"></div>
+  <div id="point3" style="position:absolute;width:16px;height:16px;background-color: red;z-index: 200;"></div>-->
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js" integrity="sha384-3ceskX3iaEnIogmQchP8opvBy3Mi7Ce34nWjpBIwVTHfGYWQS9jwHDVRnpKKHJg7" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.3.7/js/tether.min.js" integrity="sha384-XTs3FgkjiBgo8qjEjBk0tGmf3wPrWtA6coPfQDfFEY8AnYJwjalXCiosYRBIBZX8" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.5/js/bootstrap.min.js" integrity="sha384-BLiI7JTZm+JWlgKa0M0kGRpJbF2J8q+qreVrKBC47e3K6BW78kGLrCkeRX6I9RoK" crossorigin="anonymous"></script>
+    <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery.min.js"><\/script>')</script>
+    <script src="js/bootstrap-colorselector.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="js/ie10-viewport-bug-workaround.js"></script>
+    <script src="https://npmcdn.com/draggabilly@2.1/dist/draggabilly.pkgd.min.js"></script>
+    <script src="js/html2canvas.min.js"></script>
+    <script src='js/gifshot.js'></script>
+    <script src="js/gif.js"></script>
+
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+    <script src='js/spectrum.js'></script>
+    <script src='js/jquery.showandtell.js'></script>
+    <script src='js/jQueryRotate.js'></script>
+    <script type="text/javascript"
+      src="https://cdn.rawgit.com/meetselva/attrchange/master/js/attrchange.js"></script>
+
+    <script src="transform.js"></script>
+    <script src="banner-maker.js"></script>
+
+  </body>
+</html>
