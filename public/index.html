@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <link rel="icon" href="images/favicon.ico">
+        <link rel="icon" href="./images/favicon.ico" type="image/x-icon"/>
+
+        <title>Banner Maker</title>
+
+        <!-- Bootstrap core CSS -->
+        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+        <link rel='stylesheet prefetch' href='https://netdna.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.css'>
+        <link rel='stylesheet prefetch' href='https://fonts.googleapis.com/css?family=Dosis|Candal'>
+
+        <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+            <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+        <!-- Custom styles for this template -->
+        <nlink href="css/jumbotron.css" rel="stylesheet">
+        <link href="css/banner-maker.css" rel="stylesheet">
+        <link href="textbar.css" rel="stylesheet">
+        <link href="css/bootstrap-colorselector.css" rel="stylesheet">
+        <link rel='stylesheet' href='css/spectrum.css' />
+    </head>
+
+    <body>
+        <div class="container">
+            <p style="background-color:lightblue;display:none;">Reference width</p>
+        </div>
+        
+        <div style="border-top:2px solid #2e9abd;background-color:rgb(236, 238, 239);">
+            <div class="container">
+                <h1 class="logo-head">Banner Maker</h1>
+                <p class="logo-text">Creating custom gif and html banners. </p>
+            </div>
+        </div>
+
+        <nav class="navbar navbar-default navbar-static-top navbar-inverse">
+            <div class="container">
+                <div class="navbar-header" style="position: relative;">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#"> <img src="images/squirrel.png" class="squirrel" /></a>
+                </div>
+                <form class="navbar-form navbar-left save-form" role="search">
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Untitled Banner">
+                    </div>
+                    <button type="submit" class="btn btn-success">Save</button>
+                    <button type="submit" class="btn btn-success">Download</button>
+                </form>
+                <div id="navbar" class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav">
+                        <li class="active"><a href="#">Home</a></li>
+                        <li><a href="#about">About</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                        <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Dropdown <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="#">Action</a></li>
+                            <li><a href="#">Another action</a></li>
+                            <li><a href="#">Something else here</a></li>
+                            <li role="separator" class="divider"></li>
+                            <li class="dropdown-header">Nav header</li>
+                            <li><a href="#">Separated link</a></li>
+                            <li><a href="#">One more separated link</a></li>
+                        </ul>
+                        </li>
+                    </ul>
+                    <ul class="nav navbar-nav navbar-right">
+                        <li><a href="../navbar/">Default</a></li>
+                        <li class="active"><a href="./">Static top <span class="sr-only">(current)</span></a></li>
+                        <li><a href="../navbar-fixed-top/">Fixed top</a></li>
+                    </ul>
+                </div><!--/.nav-collapse -->
+            </div>
+        </nav>
+        
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h3> Slides </h3> <hr>
+
+                    <div data-bind="foreach: slidePreviews" id="previews-container" class="ui-sortable">
+
+                        <div class="slide-preview current">
+                            <div data-bind="with: $data" class="slide-thumb">
+                                <span data-bind="with: dimensions">
+                                    <img data-bind="style: {width: width, height: height, top: top, left: left}, attr: { src: $parent.img }" 
+                                            style="width:100px;height:50px;position:absolute;" >
+                                </span>
+
+                            </div>
+                            <div class="order-control" style="position: absolute;"><span> <br> 1</span>&nbsp;<input checked="" class="include-box" type="checkbox" name="check1" value="">
+                                &nbsp; <img class="mid-ctrl" src="images/sort-control.png" alt="mid" style="width:29px;height:25px">
+                            </div>
+                            <p class="preview-toolbar" style="display: block;">
+                                    <input type="hidden" name="slide-id" value="1">
+                                    <a class="btn btn-default btn-sm btn-delete" href="javascript:;" role="button">
+                                        <i class="fa fa-times" aria-hidden="true"></i> Del
+                                    </a><a class="btn btn-default btn-sm dup-slide" href="javascript:;" role="button">
+                                        Duplicate
+                                    </a><a class="btn btn-default btn-sm btn-delay" href="javascript:;" role="button">
+                                    Delay: 
+                                    <i class="delay-val">1</i>s
+                                </a><a class="btn btn-default btn-sm btn-delay-up" href="javascript:;" role="button"> +</a><a class="btn btn-default btn-sm btn-delay-down" href="javascript:;" role="button"> -</a>
+                            </p>
+                            <hr>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-8">
+                    <h3> Slide Editor </h3> <hr>
+                    <div class="text-center">
+                        <div class="nbtn-group object-toolbar" style="margin-bottom: 18px;">
+                            <a type="button" class="btn btn-default">Undo</a>
+                            <a type="button" class="btn btn-default">Redo</a>
+                            <a type="button" class="btn btn-default">Center</a>
+                            <a type="button" class="btn btn-default">Original Size</a>
+                            <a type="button" class="btn btn-default">Duplicate</a>
+                            <a type="button" class="btn btn-default">Group</a>
+                            <a type="button" class="btn btn-default"><i class="fa fa-times" aria-hidden="true"></i>&nbsp;Delete</a>
+                        </div> 
+                    </div>
+                      
+                    <div id="banner-container" class="" data-bind="style: {height: (bannerSize.height() + 20) + 'px'}" style="height: 300px;">
+
+                        <div></div>
+                        <div class="effect7 slide current" data-bind="style: {height: bannerSize.height() + 'px', width: bannerSize.width() + 'px'}"
+                                                           style="width: 728px; height: 280px;">
+                           
+                            <div data-bind="foreach: slides">
+                                <div data-bind="canvas: $data"> 
+                                    
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    <div class="nbtn-group btn-group-lg banner-toolbar" role="group" aria-label="...">
+                        <a data-bind="click: uploadImage" type="button" class="btn btn-primary">
+                            <i class="fa fa-image" aria-hidden="true"></i>&nbsp;Add Image</a>
+                        <a type="button" class="btn btn-primary">Add Text</a>
+                        <a type="button" class="btn btn-default">Background: Color &nbsp; <i class="fa fa-image" aria-hidden="true"></i></a>
+                        <a type="button" class="btn btn-default">Add Shape</a>
+                        <a type="button" class="btn btn-default">
+                            <i class="fa fa-times" aria-hidden="true"></i>&nbsp;Clear
+                        </a>
+                        <input id="choose-file" type="file" name="imageField" hidden="true" style="display:none;" />
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <div>
+            width: <input type="text" data-bind="value: swidth"/>, height: 
+            <input type="text" data-bind="value: sheight"/> <br>
+             width:<span data-bind="text: bannerSize.width"></span>, height: 
+            <span data-bind="text: bannerSize.height"></span>
+        </div>
+        <canvas id="canvasp" width="728" height="280" style="width: 728px; height: 280px;">
+
+        </canvas>
+        <img id="mirror" src=""/>
+        <!--<footer class="footer">
+            <div class="container">
+                <p class="text-muted">Powered by Conferience</p>
+            </div>
+        </footer>-->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+        <script type='text/javascript' src='js/knockout-3.4.2.js'></script>
+        <script src="http://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.7.9/fabric.min.js"></script>
+
+        <script type='text/javascript' src='js/bannerMakerViewModel.js'></script>
+    </body>
+</html>
