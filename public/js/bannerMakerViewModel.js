@@ -1,13 +1,27 @@
 /* TODO
 -undo object selection incurred zindex change
+-flip X Y
+-delete all selected objects
+-send to back/front
+-set option
 
+Issues:
+-duplicate on multiple selected items doesn't work properly
+
+New Features:
+-undo per slide
+-
 */
 function Slide(id, bannerSize, interConf){
     var self = this;
     self.canvasId = "bm-canvas-" + id;
     self.$canvasCont = $("<div> <canvas id='" + self.canvasId + "'></canvas> </div>");
     self.interConf = interConf;
-    self.selectedObject = null;
+    self.selectedObject = ko.observable();
+    self.selObjState = null;
+    self.selObjModState = {
+        left: 0, top: 0, scaleX: 0, scaleY: 0, angle: 0
+    };
     self.slidePreview = null;
     self.dirty = false;
 
@@ -21,40 +35,171 @@ function Slide(id, bannerSize, interConf){
         object:rotating
         object:scaling
         object:moving */
+
+    self.undoStack = [];
+    self.iundo = ko.observable(-1);
+
+    self.undoPush = function(action){
+        if(self.undoStack.length > self.iundo() + 1){
+            self.undoStack.splice(self.iundo() + 1, self.undoStack.length -(self.iundo() + 1));
+        }
+        self.undoStack.push(action);
+        self.iundo(self.iundo() + 1);
+    }
+
+    self.undo = function(){
+        //console.log(JSON.stringify(self.undoStack));
+        // console.log("iundo: " + self.iundo());
+        // for (var i = 0; i < self.undoStack.length; i++) {
+        //     console.log(self.undoStack[i].state);
+        // }
+        if(self.iundo() >= 0){
+            var laction = self.undoStack[self.iundo()];
+            switch(laction.action){
+                case "add":
+                    self.canvas.remove(laction.item);
+                    self.iundo(self.iundo() - 1);
+                    break;
+                case "transform":
+                    if(self.iundo() >= 1){
+                        self.iundo(self.iundo() - 1);
+                        var prevAction = self.undoStack[self.iundo()];
+                        //console.log(JSON.stringify(prevAction.state));
+                        self.setTransformState(prevAction.item, prevAction.state);
+                        prevAction.item.setCoords();
+                        self.canvas.renderAll();
+
+                        //self.setTransformState(prevAction.item, prevAction.state);
+                    }
+                    break;
+                case "delete":
+                    break;
+            }
+        }
+        self.updateSlidePreview();
+    }
+
+    self.redo = function(){
+         if(iundo < undoStack.length - 1){
+            iundo++;
+            var laction = undoStack[iundo];
+            var $laitem = laction.item;
+            $laitem.css({
+                top: $laitem.position().top + laction.dstate.dtop,
+                left: $laitem.position().left + laction.dstate.dleft,
+            });
+            
+            $laitem.find(".imain").rotate(laction.dstate.curRot);
+
+            if(!$laitem.is(".textDiv")){
+                $laitem.css({
+                    width: $laitem.width() + laction.dstate.dwidth,
+                    height: $laitem.height() + laction.dstate.dheight
+                });
+            }
+            updateCtrlPosEl($laitem);
+        }
+    }
+
+    function clearUndoStack(){
+        self.undoStack = [];
+        self.iundo = -1;
+    }
     
+    self.getTransformState = function(obj){
+        return {
+            left: obj.getLeft(),
+            top: obj.getTop(),
+            scaleX: obj.getScaleX(),
+            scaleY: obj.getScaleY(),
+            angle: obj.getAngle()
+        };
+    }
+    self.setTransformState = function(obj, state){
+        obj.set({
+            left: state.left,
+            top: state.top,
+            scaleX: state.scaleX,
+            scaleY: state.scaleY,
+            angle: state.angle
+        });
+        obj.setCoords();
+    }
+
+    self.updateModState = function(){
+        var so = self.selectedObject();
+        self.selObjModState.left = so.getLeft();
+        self.selObjModState.top = so.getTop();
+        self.selObjModState.scaleX = so.getScaleX();
+        self.selObjModState.scaleY = so.getScaleY();
+        self.selObjModState.angle = so.getAngle();
+    }
     self.canvas.on('object:added', function(e) {
         if(self.slidePreview){
-            self.slidePreview.img(self.canvas.toDataURL());
+            self.updateSlidePreview();
         }
-
+        //console.log(JSON.stringify(e.target));
+        self.undoPush({
+            action: "add",
+            item: e.target,
+            state: self.getTransformState(e.target)
+        });
+        //todo: undo push here?
     });
     self.canvas.on('object:rotating', function(e) {
         self.dirty = true;
+        //self.updateModState();
     });
     self.canvas.on('object:scaling', function(e) {
         self.dirty = true;
+        //self.updateModState();
     });
     self.canvas.on('object:moving', function(e) {
         self.dirty = true;
+        //self.updateModState();
     });
     //--It all comes down to this:
     self.canvas.on('mouse:up', function(e) {
         if(self.dirty == true){
             self.dirty = false;
-            self.slidePreview.img(self.canvas.toDataURL());
+            var so = self.selObjModState;
+            self.selObjState = {
+                item: self.selectedObject(),
+                left: so.left,
+                top: so.top,
+                scaleX: so.scaleX,
+                scaleY: so.scaleY,
+                angle: so.angle
+            };
+            
+            self.undoPush({
+                action: "transform",
+                item: self.selectedObject(),
+                state: self.getTransformState(self.selectedObject())
+            });
+
+            self.updateSlidePreview();
         }
         
     });
-
-
     self.canvas.on('object:selected', function(e) {
         e.target.bringToFront();
-        self.selectedObject = e.target;
-        self.slidePreview.img(self.canvas.toDataURL());
+        self.selectedObject(e.target);
+        var so = e.target;
+        self.selObjState = {
+            item: e.target,
+            left: so.getLeft(),
+            top: so.getTop(),
+            scaleX: so.getScaleX(),
+            scaleY: so.getScaleY(),
+            angle: so.getAngle()
+        };
+        //console.log(JSON.stringify(self.selObjState));
+        self.updateSlidePreview();
         console.log("object selected");
     });
     self.canvas.on('selection:cleared', function(e) {
-        self.selectedObject = null;
+        self.selectedObject(null);
         console.log("object deselected");
     });
 
@@ -72,9 +217,48 @@ function Slide(id, bannerSize, interConf){
     self.canvas.add(rect);
     rect.bringToFront();
 
+
     self.setSlidePreview = function(slidePreview){
         self.slidePreview = slidePreview;
     }
+    self.updateSlidePreview = function(){
+        self.slidePreview.img(self.canvas.toDataURL());
+    }
+
+    self.centerSelectedObject = function(){
+        if(self.selectedObject()){
+            self.selectedObject().center().setCoords();
+            self.updateSlidePreview();
+        }
+    }
+
+    self.deleteSelectedObject = function(){
+        if(self.selectedObject()){
+            self.canvas.remove(self.selectedObject());
+            self.undoPush({
+                action: "delete",
+                item: self.selectedObject()
+            });
+
+            self.updateSlidePreview();
+        }
+    }
+
+    self.duplicateSelectedObject = function(){
+        if(self.selectedObject()){
+            self.selectedObject().clone(function(dupObj){
+                dupObj.set(self.interConf);
+                self.canvas.add(dupObj);
+                var initLeft = dupObj.getLeft();
+                dupObj.setLeft(initLeft + 30);
+                dupObj.setCoords();
+                self.canvas.setActiveObject(dupObj);
+                //self.updateSlidePreview();
+            });
+            
+        }
+    }
+
     self.addImage = function(image, bannerSize) {
 
         fabric.Image.fromURL(image, function(oImg) {
@@ -94,6 +278,12 @@ function Slide(id, bannerSize, interConf){
             oImg.center();
             oImg.setCoords();
             self.canvas.setActiveObject(oImg);
+
+            // self.undoPush({
+            //     action: "add",
+            //     item: oImg
+            // });
+
             var canvas = document.getElementById('bm-canvas-0');
             var dataURL = self.canvas.toDataURL();
             document.getElementById('mirror').src = dataURL;
@@ -189,11 +379,16 @@ function BannerMakerViewModel(){
     self.slides.push(slide);
     self.slidePreviews.push(slidePreview);
 
-    self.currentSlide = slide;
-
+    self.currentSlide = ko.observable(slide);
+    self.icurSlide = ko.observable(0);
+    
+    self.setCurrentSlide = function(index){
+        self.currentSlide(self.slides[index]());
+        self.icurSlide(index);
+    }
 
     self.addImage = function(image){
-        self.currentSlide.addImage(image, self.bannerSize);
+        self.currentSlide().addImage(image, self.bannerSize);
     }
     // setTimeout(function(){
     //     var canvas = document.getElementById('bm-canvas-0');

@@ -129,13 +129,13 @@
                     <h3> Slide Editor </h3> <hr>
                     <div class="text-center">
                         <div class="nbtn-group object-toolbar" style="margin-bottom: 18px;">
-                            <a type="button" class="btn btn-default">Undo</a>
-                            <a type="button" class="btn btn-default">Redo</a>
-                            <a type="button" class="btn btn-default">Center</a>
-                            <a type="button" class="btn btn-default">Original Size</a>
-                            <a type="button" class="btn btn-default">Duplicate</a>
-                            <a type="button" class="btn btn-default">Group</a>
-                            <a type="button" class="btn btn-default"><i class="fa fa-times" aria-hidden="true"></i>&nbsp;Delete</a>
+                            <a data-bind="click: currentSlide().undo, css: { disabled: currentSlide().iundo() < 0 }" type="button" class="btn btn-default">Undo</a>
+                            <a data-bind="" type="button" class="btn btn-default">Redo</a>
+                            <a data-bind="click: currentSlide().centerSelectedObject, css: { disabled: currentSlide().selectedObject() == null }" type="button" class="btn btn-default">Center</a>
+                            <a data-bind="css: { disabled: currentSlide().selectedObject() == null }" type="button" class="btn btn-default">Original Size</a>
+                            <a data-bind="click: currentSlide().duplicateSelectedObject, css: { disabled: currentSlide().selectedObject() == null }" type="button" class="btn btn-default">Duplicate</a>
+                            <a data-bind="css: { disabled: currentSlide().selectedObject() == null }" type="button" class="btn btn-default">Group</a>
+                            <a data-bind="click: currentSlide().deleteSelectedObject, css: { disabled: currentSlide().selectedObject() == null }" type="button" class="btn btn-default"><i class="fa fa-times" aria-hidden="true"></i>&nbsp;Delete</a>
                         </div> 
                     </div>
                       
