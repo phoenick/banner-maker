@@ -4,6 +4,7 @@
 -delete all selected objects
 -send to back/front
 -set option
+-undo redo selects action object? but then messes with the z order
 
 Issues:
 -duplicate on multiple selected items doesn't work properly
@@ -38,8 +39,10 @@ function Slide(id, bannerSize, interConf){
 
     self.undoStack = [];
     self.iundo = ko.observable(-1);
+    self.objectAddedFromRedo = false;
 
     self.undoPush = function(action){
+
         if(self.undoStack.length > self.iundo() + 1){
             self.undoStack.splice(self.iundo() + 1, self.undoStack.length -(self.iundo() + 1));
         }
@@ -73,31 +76,36 @@ function Slide(id, bannerSize, interConf){
                     }
                     break;
                 case "delete":
+                    if(laction.item == null) alert("whaa");
+                    self.canvas.add(laction.item);
+                    self.iundo(self.iundo() - 1);
                     break;
             }
+            self.updateSlidePreview();
         }
-        self.updateSlidePreview();
+        
     }
 
     self.redo = function(){
-         if(iundo < undoStack.length - 1){
-            iundo++;
-            var laction = undoStack[iundo];
-            var $laitem = laction.item;
-            $laitem.css({
-                top: $laitem.position().top + laction.dstate.dtop,
-                left: $laitem.position().left + laction.dstate.dleft,
-            });
-            
-            $laitem.find(".imain").rotate(laction.dstate.curRot);
-
-            if(!$laitem.is(".textDiv")){
-                $laitem.css({
-                    width: $laitem.width() + laction.dstate.dwidth,
-                    height: $laitem.height() + laction.dstate.dheight
-                });
+        if(self.iundo() < self.undoStack.length - 1){
+            console.log("redo");
+            self.iundo(self.iundo() + 1);
+            var laction = self.undoStack[self.iundo()];
+            switch(laction.action){
+                case "add":
+                    //self.objectAddedFromRedo = true;
+                    self.canvas.add(laction.item);
+                    break;
+                case "transform":
+                    self.setTransformState(laction.item, laction.state);
+                    laction.item.setCoords();
+                    self.canvas.renderAll();
+                    break;
+                case "delete":
+                    self.canvas.remove(laction.item);
+                    break;
             }
-            updateCtrlPosEl($laitem);
+            self.updateSlidePreview();
         }
     }
 
@@ -139,11 +147,8 @@ function Slide(id, bannerSize, interConf){
             self.updateSlidePreview();
         }
         //console.log(JSON.stringify(e.target));
-        self.undoPush({
-            action: "add",
-            item: e.target,
-            state: self.getTransformState(e.target)
-        });
+        
+        
         //todo: undo push here?
     });
     self.canvas.on('object:rotating', function(e) {
@@ -203,19 +208,19 @@ function Slide(id, bannerSize, interConf){
         console.log("object deselected");
     });
 
-    var rect = new fabric.Rect({
-        left: 200,
-        top: 100,
-        fill: 'red',
-        width: 120,
-        height: 120,
-        angle: 45,
-        transparentCorners: false,
-        cornerSize: 10,
-        rotatingPointOffset: 25
-    });
-    self.canvas.add(rect);
-    rect.bringToFront();
+    // var rect = new fabric.Rect({
+    //     left: 200,
+    //     top: 100,
+    //     fill: 'red',
+    //     width: 120,
+    //     height: 120,
+    //     angle: 45,
+    //     transparentCorners: false,
+    //     cornerSize: 10,
+    //     rotatingPointOffset: 25
+    // });
+    // self.canvas.add(rect);
+    // rect.bringToFront();
 
 
     self.setSlidePreview = function(slidePreview){
@@ -228,16 +233,23 @@ function Slide(id, bannerSize, interConf){
     self.centerSelectedObject = function(){
         if(self.selectedObject()){
             self.selectedObject().center().setCoords();
+            self.undoPush({
+                action: "transform",
+                item: self.selectedObject(),
+                state: self.getTransformState(self.selectedObject())
+            });
+
             self.updateSlidePreview();
         }
     }
 
     self.deleteSelectedObject = function(){
         if(self.selectedObject()){
-            self.canvas.remove(self.selectedObject());
+            var so = self.selectedObject();
+            self.canvas.remove(so);
             self.undoPush({
                 action: "delete",
-                item: self.selectedObject()
+                item: so
             });
 
             self.updateSlidePreview();
@@ -253,6 +265,11 @@ function Slide(id, bannerSize, interConf){
                 dupObj.setLeft(initLeft + 30);
                 dupObj.setCoords();
                 self.canvas.setActiveObject(dupObj);
+                self.undoPush({
+                    action: "add",
+                    item: dupObj,
+                    state: self.getTransformState(dupObj)
+                });
                 //self.updateSlidePreview();
             });
             
@@ -278,6 +295,13 @@ function Slide(id, bannerSize, interConf){
             oImg.center();
             oImg.setCoords();
             self.canvas.setActiveObject(oImg);
+
+            self.undoPush({
+                action: "add",
+                item: oImg,
+                state: self.getTransformState(oImg)
+            });
+
 
             // self.undoPush({
             //     action: "add",
