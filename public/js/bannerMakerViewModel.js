@@ -5,9 +5,13 @@
 -send to back/front
 -set option
 -undo redo selects action object? but then messes with the z order
+-user can create guidelines
+-canvas function moveTo(object, index) related to z order
+-lock x y on object toolbar
 
 Issues:
 -duplicate on multiple selected items doesn't work properly
+-undo should be per object
 
 New Features:
 -undo per slide
@@ -15,7 +19,11 @@ New Features:
 */
 function Slide(id, bannerSize, interConf){
     var self = this;
+    // if(canvas){
+    //     self.canvas
+    // }
     self.canvasId = "bm-canvas-" + id;
+    self.previewId = "bm-preview-" + id;
     self.$canvasCont = $("<div> <canvas id='" + self.canvasId + "'></canvas> </div>");
     self.interConf = interConf;
     self.selectedObject = ko.observable();
@@ -25,11 +33,60 @@ function Slide(id, bannerSize, interConf){
     };
     self.slidePreview = null;
     self.dirty = false;
+    self.delay = ko.observable(1);
+
+    self.backgroundColor = ko.observable("#fff");
+    self.backgroundColor.subscribe(function(newValue) {
+        self.canvas.setBackgroundColor(newValue).renderAll();
+        self.updateSlidePreview();
+    });
+
+    self.URL = ko.observable("http://www.example.com");
 
     self.canvas = new fabric.Canvas(self.$canvasCont.find("canvas")[0], {
         width: bannerSize.width(),
         height: bannerSize.height(),
     });
+
+    self.incrementDelay = function(){
+        self.delay(self.delay() + 1);
+    }
+    self.decrementDelay = function(){
+        if(self.delay() > 1){
+            self.delay(self.delay() - 1);
+        }
+    }
+
+    self.cloneCanvas = function(){
+        self.canvas.clone(function(dupcan){
+            console.log(JSON.stringify(dupcan));
+            $("body").append(dupcan).append("hello");
+        });
+    }
+
+    self.setCanvasJSON = function(canvasJSON){
+        self.canvas.loadFromJSON(canvasJSON, function(){
+            var objects = self.canvas.getObjects();
+            for(var i = 0; i < objects.length; i++){
+                objects[i].set(self.interConf);
+                objects[i].bmInitState = {
+                    left: objects[i].getLeft(),
+                    top: objects[i].getTop(),
+                    scaleX: objects[i].getScaleX(),
+                    scaleY: objects[i].getScaleY(),
+                    angle: objects[i].getAngle()
+                };
+            }
+
+            self.canvas.renderAll();
+            self.updateSlidePreview();
+        });
+    }
+
+    self.getCanvasJSON = function(){
+        return self.canvas.toJSON();
+    }
+
     /* Events of interest:
         object:added
         object:modified //to include in the future
@@ -74,10 +131,26 @@ function Slide(id, bannerSize, interConf){
 
                         //self.setTransformState(prevAction.item, prevAction.state);
                     }
+                    else{
+                        self.iundo(self.iundo() - 1);
+                        self.setTransformState(laction.item, laction.item.bmInitState);
+                        laction.item.setCoords();
+                        self.canvas.renderAll();
+                    }
                     break;
                 case "delete":
-                    if(laction.item == null) alert("whaa");
                     self.canvas.add(laction.item);
+                    self.iundo(self.iundo() - 1);
+                    break;
+                case "clear slide":
+                    var objects = laction.items;
+                    var arrayLength = objects.length;
+                    for (var i = 0; i < arrayLength; i++) {
+                        //objects[i].setTop(20).setCoords();
+                        self.canvas.add(objects[i]);
+                    }
+                    //self.canvas.renderAll();
+
                     self.iundo(self.iundo() - 1);
                     break;
             }
@@ -103,6 +176,13 @@ function Slide(id, bannerSize, interConf){
                     break;
                 case "delete":
                     self.canvas.remove(laction.item);
+                    break;
+                case "clear slide":
+                    var objects = laction.items;
+                    var arrayLength = objects.length;
+                    for (var i = 0; i < arrayLength; i++) {
+                        self.canvas.remove(objects[i]);
+                    }
                     break;
             }
             self.updateSlidePreview();
@@ -230,6 +310,23 @@ function Slide(id, bannerSize, interConf){
         self.slidePreview.img(self.canvas.toDataURL());
     }
 
+    self.clearSlide = function(){
+        var objects = self.canvas.getObjects().slice();
+        var arrayLength = objects.length;
+        console.log("ar length: " + arrayLength);
+        for (var i = 0; i < arrayLength; i++) {
+            //objects[i].setTop(20).setCoords();
+            self.canvas.remove(objects[i]);
+        }
+        //self.canvas.renderAll();
+        self.undoPush({
+            action: "clear slide",
+            items: objects
+        });
+
+        self.updateSlidePreview();
+    }
+
     self.centerSelectedObject = function(){
         if(self.selectedObject()){
             self.selectedObject().center().setCoords();
@@ -262,8 +359,20 @@ function Slide(id, bannerSize, interConf){
                 dupObj.set(self.interConf);
                 self.canvas.add(dupObj);
                 var initLeft = dupObj.getLeft();
+                var initTop = dupObj.getTop();
                 dupObj.setLeft(initLeft + 30);
+                dupObj.setTop(initTop + 30);
                 dupObj.setCoords();
+                //if the object is text
+                if(dupObj.fontFamily){
+                    dupObj.on('editing:entered', function(e) { 
+                        $("#text-edit").show();
+                    });
+                    dupObj.on('editing:exited', function(e) {
+                        self.updateSlidePreview();
+                        $("#text-edit").hide();
+                    });
+                }
                 self.canvas.setActiveObject(dupObj);
                 self.undoPush({
                     action: "add",
@@ -308,11 +417,51 @@ function Slide(id, bannerSize, interConf){
             //     item: oImg
             // });
 
-            var canvas = document.getElementById('bm-canvas-0');
-            var dataURL = self.canvas.toDataURL();
-            document.getElementById('mirror').src = dataURL;
+            // var canvas = document.getElementById('bm-canvas-0');
+            // var dataURL = self.canvas.toDataURL();
+            // document.getElementById('mirror').src = dataURL;
             //self.canvas.remove(oImg);
         });
+    }
+
+
+    self.addText = function() {
+
+            var iText = new fabric.IText('Double click to edit', {
+
+                fontFamily: 'Segoe UI',
+                fill: '#000',
+                styles: {
+                    0: {
+                       
+                    }
+                }
+            });
+
+            //setLeft(100).setTop(100).scaleToHeight(150);
+            iText.set(self.interConf);
+            iText.set({padding: 10});
+            iText.on('editing:entered', function(e) { 
+                $("#text-edit").show();
+            });
+            iText.on('editing:exited', function(e) {
+                self.updateSlidePreview();
+                $("#text-edit").hide();
+            });
+
+
+            self.canvas.add(iText);
+            iText.bringToFront();
+            iText.center();
+            iText.setCoords();
+            self.canvas.setActiveObject(iText);
+
+            self.undoPush({
+                action: "add",
+                item: iText,
+                state: self.getTransformState(iText)
+            });
+
     }
     // $("body").append(self.$canvasCont);
 }
@@ -393,27 +542,170 @@ function BannerMakerViewModel(){
         };
     })();
 
+    self.fonts = [
+        "Georgia", "Palatino", "Times", "Segoe UI", "Arial", "Arial Black", "Impact", "Courier"
+    ];
+
     self.slides = ko.observableArray([]);
-    self.slidePreviews = ko.observableArray([]);
+
     
 
     var slide = new Slide(self.newSlideId(), self.bannerSize, self.interConf);
     var slidePreview = new SlidePreview(self.bannerSize);
     slide.setSlidePreview(slidePreview);
     self.slides.push(slide);
-    self.slidePreviews.push(slidePreview);
 
     self.currentSlide = ko.observable(slide);
     self.icurSlide = ko.observable(0);
     
     self.setCurrentSlide = function(index){
-        self.currentSlide(self.slides[index]());
+        self.currentSlide(self.slides()[index]);
         self.icurSlide(index);
+    }
+
+    self.selectSlide = function(slide){
+        self.currentSlide(slide);
+        self.icurSlide(self.slides.indexOf(slide));
+
+        var $parentDiv = $("#previews-container");
+        var $curSlidePrev = $("#" + slide.previewId);
+        var parScrollTop = $parentDiv.scrollTop() + $curSlidePrev.position().top
+            - $parentDiv.height()/2 + $curSlidePrev.height()/2;
+        $parentDiv.animate({scrollTop: parScrollTop}, 300);
+    }
+
+    self.addSlide = function(){
+        var slide = new Slide(self.newSlideId(), self.bannerSize, self.interConf);
+        var slidePreview = new SlidePreview(self.bannerSize);
+        slide.setSlidePreview(slidePreview);
+        self.slides.push(slide);
+        self.selectSlide(slide)
+
+    }
+
+    self.duplicateCurrentSlide = function(){
+        var slide = new Slide(self.newSlideId(), self.bannerSize, self.interConf);
+        var slidePreview = new SlidePreview(self.bannerSize);
+        slide.setSlidePreview(slidePreview);
+        slide.setCanvasJSON(self.currentSlide().getCanvasJSON());
+
+        self.slides.splice(self.icurSlide() + 1, 0, slide);
+
+        self.selectSlide(slide);
+        var objects = self.currentSlide().canvas.getObjects();
+        for(var i = 0; i < objects.length; i++){
+            if(objects[i].fontFamily){
+                objects[i].on('editing:entered', function(e) { 
+                    $("#text-edit").show();
+                });
+                objects[i].on('editing:exited', function(e) {
+                    self.updateSlidePreview(); //possible issue
+                    $("#text-edit").hide();
+                });
+            }
+        }
+    }
+
+    self.updateSlidePreview = function(){
+        self.currentSlide().updateSlidePreview(); //possible issue
     }
 
     self.addImage = function(image){
         self.currentSlide().addImage(image, self.bannerSize);
     }
+    self.addText = function(){
+        self.currentSlide().addText();
+    }
+
+    
+    self.setStyle = function (object, styleName, value) {
+        if (object.setSelectionStyles && object.isEditing) {
+            var style = { };
+            style[styleName] = value;
+            object.setSelectionStyles(style);
+        }
+        else {
+            object[styleName] = value;
+        }
+    }
+    self.getStyle = function (object, styleName) {
+        return (object.getSelectionStyles && object.isEditing)
+        ? object.getSelectionStyles()[styleName]
+        : object[styleName];
+    }
+    self.textEdit = function(command, value, data, event){
+        switch(command){
+            case 'bold': 
+                var isBold = self.getStyle(self.currentSlide().selectedObject(), 'fontWeight') === 'bold';
+                self.setStyle(self.currentSlide().selectedObject(), 'fontWeight', isBold ? '' : 'bold');
+                self.currentSlide().canvas.renderAll();
+                break;
+            case 'italic': 
+                var isItalic = self.getStyle(self.currentSlide().selectedObject(), 'fontStyle') === 'italic';
+                self.setStyle(self.currentSlide().selectedObject(), 'fontStyle', isItalic ? '' : 'italic');
+                self.currentSlide().canvas.renderAll();
+                break;
+            case 'underline': 
+                var isUnderline = (self.getStyle(self.currentSlide().selectedObject(), 'textDecoration') || '').indexOf('underline') > -1;
+                self.setStyle(self.currentSlide().selectedObject(), 'textDecoration', isUnderline ? '' : 'underline');
+                self.currentSlide().canvas.renderAll();
+                break;
+            case 'align':
+                if(value == "left"){
+                    self.currentSlide().selectedObject().set({textAlign: "left"});
+                }
+                else if(value == "center"){
+                    self.currentSlide().selectedObject().set({textAlign: "center"});
+                }
+                else if(value == "right"){
+                    self.currentSlide().selectedObject().set({textAlign: "right"});
+                }
+                self.currentSlide().canvas.renderAll();
+                break;
+        }
+    }
+    self.textColor = ko.observable("#000");
+    self.textBgColor = ko.observable("#fff");
+    self.textColor.subscribe(function(newValue) {
+        self.setStyle(self.currentSlide().selectedObject(), 'fill', newValue);
+        self.currentSlide().canvas.renderAll();
+    });
+    self.textBgColor.subscribe(function(newValue) {
+        self.setStyle(self.currentSlide().selectedObject(), 'textBackgroundColor', newValue);
+        self.currentSlide().canvas.renderAll();
+    });
+
+    self.setTextFont = function(data){
+        self.setStyle(self.currentSlide().selectedObject(), 'fontFamily', data);
+        self.currentSlide().canvas.renderAll();
+    }
+
+    self.textSize = ko.observable(40);
+    self.textSize.subscribe(function(newValue) {
+        self.setStyle(self.currentSlide().selectedObject(), 'fontSize', parseInt(newValue, 10));
+        self.currentSlide().canvas.renderAll();
+    });
+    
+    $("#previews-container").sortable({
+        tolerance: "pointer",
+        placeholder:'preview-holder',
+        handle: '.mid-ctrl',
+        forcePlaceholderSize: true,
+        scroll: true,
+        start: function( event, ui ) {
+           $(".slide-preview.current .preview-toolbar").hide();
+           sortStartIndex = $("#previews-container").children().index(ui.item);
+           console.log(sortStartIndex);
+        },
+        stop: function( event, ui ) {
+           $(".slide-preview.current .preview-toolbar").show();
+           sortStopIndex = $("#previews-container").children().index(ui.item);
+           console.log(sortStopIndex + "---");
+           //updateSortOrder();
+           //updateSortOrder
+        }
+    });
+
     // setTimeout(function(){
     //     var canvas = document.getElementById('bm-canvas-0');
     //     var dataURL = canvas.toDataURL();

@@ -46,45 +46,64 @@
 
         <nav class="navbar navbar-default navbar-static-top navbar-inverse">
             <div class="container">
-                <div class="navbar-header" style="position: relative;">
-                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <a class="navbar-brand" href="#"> <img src="images/squirrel.png" class="squirrel" /></a>
-                </div>
-                <form class="navbar-form navbar-left save-form" role="search">
-                    <div class="form-group">
-                        <input type="text" class="form-control" placeholder="Untitled Banner">
+                <div class="col-md-4">
+                    <div class="navbar-header" style="position: relative;">
+                        <!--<button  type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                            <span class="sr-only">Toggle navigation</span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </button>-->
+                        
+                        <a class="navbar-brand" href="#"> <img src="images/squirrel.png" class="squirrel" /></a>
                     </div>
-                    <button type="submit" class="btn btn-success">Save</button>
-                    <button type="submit" class="btn btn-success">Download</button>
-                </form>
-                <div id="navbar" class="navbar-collapse collapse">
-                    <ul class="nav navbar-nav">
-                        <li class="active"><a href="#">Home</a></li>
-                        <li><a href="#about">About</a></li>
-                        <li><a href="#contact">Contact</a></li>
-                        <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Dropdown <span class="caret"></span></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="#">Action</a></li>
-                            <li><a href="#">Another action</a></li>
-                            <li><a href="#">Something else here</a></li>
-                            <li role="separator" class="divider"></li>
-                            <li class="dropdown-header">Nav header</li>
-                            <li><a href="#">Separated link</a></li>
-                            <li><a href="#">One more separated link</a></li>
+                    <p class="" style="font-size:14px; color:rgb(236, 238, 239);text-align:left;padding-top:16px;padding-left:62px;">
+                        Powered by Conferience | contact us
+                    </p>
+                </div>
+                
+                <div class="col-md-8">
+                    <form class="navbar-form navbar-left save-form" role="search">
+                        <div class="form-group">
+                            <input type="text" class="form-control" placeholder="Untitled Banner">
+                        </div>
+                        <a class="btn btn-success">Save</a>
+                        <div class="dropdown" style="display:inline-block;">
+                            <a class="btn btn-success dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                Download Banner
+                                <span class="caret"></span>
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownMenu2">
+                                <li><a href="#">as GIF</a></li>
+                                <li><a href="#">as HTML</a></li>
+                            </ul>
+                        </div>
+                    </form>
+                    <div id="navbar" class="navbar-collapse collapse">
+                        <!--<ul class="nav navbar-nav">
+                            <li class="active"><a href="#">Home</a></li>
+                            <li><a href="#about">About</a></li>
+                            <li><a href="#contact">Contact</a></li>
+                            <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Dropdown <span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="#">Action</a></li>
+                                <li><a href="#">Another action</a></li>
+                                <li><a href="#">Something else here</a></li>
+                                <li role="separator" class="divider"></li>
+                                <li class="dropdown-header">Nav header</li>
+                                <li><a href="#">Separated link</a></li>
+                                <li><a href="#">One more separated link</a></li>
+                            </ul>
+                            </li>
+                        </ul>-->
+                        <ul class="nav navbar-nav navbar-right">
+                            <li><a href="../navbar/">Default</a></li>
+                            <li class="active"><a href="./">Static top <span class="sr-only">(current)</span></a></li>
+                            <li><a href="../navbar-fixed-top/">Fixed top</a></li>
                         </ul>
-                        </li>
-                    </ul>
-                    <ul class="nav navbar-nav navbar-right">
-                        <li><a href="../navbar/">Default</a></li>
-                        <li class="active"><a href="./">Static top <span class="sr-only">(current)</span></a></li>
-                        <li><a href="../navbar-fixed-top/">Fixed top</a></li>
-                    </ul>
+                </div>
+                
                 </div><!--/.nav-collapse -->
             </div>
         </nav>
@@ -94,10 +113,10 @@
                 <div class="col-md-4">
                     <h3> Slides </h3> <hr>
 
-                    <div data-bind="foreach: slidePreviews" id="previews-container" class="ui-sortable">
+                    <div data-bind="foreach: slides" id="previews-container" class="ui-sortable">
 
-                        <div class="slide-preview current">
-                            <div data-bind="with: $data" class="slide-thumb">
+                        <div data-bind="attr: { id: $data.previewId }, css: { current: $index() == $root.icurSlide() }" class="slide-preview">
+                            <div data-bind="with: $data.slidePreview, click: $root.selectSlide" class="slide-thumb">
                                 <span data-bind="with: dimensions">
                                     <img data-bind="style: {width: width, height: height, top: top, left: left}, attr: { src: $parent.img }" 
                                             style="width:100px;height:50px;position:absolute;" >
@@ -107,30 +126,31 @@
                             <div class="order-control" style="position: absolute;"><span> <br> 1</span>&nbsp;<input checked="" class="include-box" type="checkbox" name="check1" value="">
                                 &nbsp; <img class="mid-ctrl" src="images/sort-control.png" alt="mid" style="width:29px;height:25px">
                             </div>
-                            <p class="preview-toolbar" style="display: block;">
+                            <p data-bind="visible: $index() == $root.icurSlide()" class="preview-toolbar" style="display: block;">
                                     <input type="hidden" name="slide-id" value="1">
-                                    <a class="btn btn-default btn-sm btn-delete" href="javascript:;" role="button">
+                                    <a data-bind="click: $root.deleteCurrentSlide" class="btn btn-default btn-sm btn-delete" role="button">
                                         <i class="fa fa-times" aria-hidden="true"></i> Del
-                                    </a><a class="btn btn-default btn-sm dup-slide" href="javascript:;" role="button">
+                                    </a><a data-bind="click: $root.duplicateCurrentSlide" class="btn btn-default btn-sm dup-slide" role="button">
                                         Duplicate
                                     </a><a class="btn btn-default btn-sm btn-delay" href="javascript:;" role="button">
                                     Delay: 
-                                    <i class="delay-val">1</i>s
-                                </a><a class="btn btn-default btn-sm btn-delay-up" href="javascript:;" role="button"> +</a><a class="btn btn-default btn-sm btn-delay-down" href="javascript:;" role="button"> -</a>
+                                    <i data-bind="text: delay" class="delay-val">1</i>s
+                                </a><a data-bind="click: incrementDelay" class="btn btn-default btn-sm btn-delay-up" role="button"> +</a><a data-bind="click: decrementDelay" class="btn btn-default btn-sm btn-delay-down" role="button"> -</a>
                             </p>
                             <hr>
                         </div>
 
                     </div>
+                    <a data-bind="click: addSlide" id="add-slide" class="btn btn-default" style="float: right;">Add Slide</a>
 
                 </div>
 
                 <div class="col-md-8">
-                    <h3> Slide Editor </h3> <hr>
+                    <h3> Slide Editor: <span data-bind="text: 'Slide ' + (icurSlide()+1)" style="color: grey"> </span></h3> <hr>
                     <div class="text-center">
                         <div class="nbtn-group object-toolbar" style="margin-bottom: 18px;">
-                            <a data-bind="click: currentSlide().undo, css: { disabled: currentSlide().iundo() < 0 }" type="button" class="btn btn-default">Undo</a>
-                            <a data-bind="click: currentSlide().redo, css: { disabled: currentSlide().iundo() == currentSlide().undoStack.length - 1 }" type="button" class="btn btn-default">Redo</a>
+                            <a data-bind="click: currentSlide().undo, css: { disabled: currentSlide().iundo() < 0 }" type="button" class="btn btn-default"><i class="fa fa-rotate-left" aria-hidden="true"></i>&nbsp;Undo</a>
+                            <a data-bind="click: currentSlide().redo, css: { disabled: currentSlide().iundo() == currentSlide().undoStack.length - 1 }" type="button" class="btn btn-default"><i class="fa fa-rotate-right" aria-hidden="true"></i>&nbsp;Redo</a>
                             <a data-bind="click: currentSlide().centerSelectedObject, css: { disabled: currentSlide().selectedObject() == null }" type="button" class="btn btn-default">Center</a>
                             <a data-bind="css: { disabled: currentSlide().selectedObject() == null }" type="button" class="btn btn-default">Original Size</a>
                             <a data-bind="click: currentSlide().duplicateSelectedObject, css: { disabled: currentSlide().selectedObject() == null }" type="button" class="btn btn-default">Duplicate</a>
@@ -146,21 +166,50 @@
                                                            style="width: 728px; height: 280px;">
                            
                             <div data-bind="foreach: slides">
-                                <div data-bind="canvas: $data"> 
+                                <div data-bind="canvas: $data, visible: $index() == $root.icurSlide()"> 
                                     
                                 </div>
                             </div>
                             
                         </div>
                     </div>
+                    <div class="text-center">
+                        <div id="text-edit" class="nbtn-group object-toolbar" style="margin-bottom: 18px;display:none;">
+                            <span style="font-size:16px;"> Text Editing: </span> 
+                            <a data-bind="click: textEdit.bind($data, 'bold', '')" type="button" class="btn btn-default"><i class="fa fa-bold" aria-hidden="true"></i></a>
+                            <a data-bind="click: textEdit.bind($data, 'italic', '')" type="button" class="btn btn-default"><i class="fa fa-italic" aria-hidden="true"></i></a>
+                            <a data-bind="click: textEdit.bind($data, 'underline', '')" type="button" class="btn btn-default"><i class="fa fa-underline" aria-hidden="true"></i></a>
+                            <a data-bind="click: textEdit.bind($data, 'align', 'left')" type="button" class="btn btn-default"><i class="fa fa-align-left" aria-hidden="true"></i></a>
+                            <a data-bind="click: textEdit.bind($data, 'align', 'center')" type="button" class="btn btn-default"><i class="fa fa-align-center" aria-hidden="true"></i></a>
+                            <a data-bind="click: textEdit.bind($data, 'align', 'right')" type="button" class="btn btn-default"><i class="fa fa-align-right" aria-hidden="true"></i></a>
+                            Color : <input data-bind="value: textColor" type="color" value="#000" style="width:24px"> &nbsp;BgColor : <input data-bind="value: textBgColor" type="color" style="width:24px">&nbsp;
+                            Size: <input data-bind="value: textSize" type="range" min="5" max="150" style="width:74px;display:inline-block;position:relative;top:7px;">
+                            <div class="dropup" style="display:inline-block;">
+                                <a id="dropdownMenu1" class="btn btn-default dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true">
+                                    Font 
+                                    <i class="fa fa-caret-up" aria-hidden="true"></i></a>
+                                </a>
+                                <ul data-bind="foreach: fonts" class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                                    <li><a href="javascript:;" data-bind="click: $parent.setTextFont, text: $data, style: {fontFamily: $data}" >Action</a></li>
+                                    
+                                </ul>
+                            </div>
+                        </div> 
+                    </div>
                     <div class="nbtn-group btn-group-lg banner-toolbar" role="group" aria-label="...">
                         <a data-bind="click: uploadImage" type="button" class="btn btn-primary">
                             <i class="fa fa-image" aria-hidden="true"></i>&nbsp;Add Image</a>
-                        <a type="button" class="btn btn-primary">Add Text</a>
-                        <a type="button" class="btn btn-default">Background: Color &nbsp; <i class="fa fa-image" aria-hidden="true"></i></a>
-                        <a type="button" class="btn btn-default">Add Shape</a>
-                        <a type="button" class="btn btn-default">
-                            <i class="fa fa-times" aria-hidden="true"></i>&nbsp;Clear
+                        <a data-bind="click: addText" type="button" class="btn btn-primary">Add Text</a>
+                        <a type="button" class="btn btn-default">Background: 
+                            <input data-bind="value: currentSlide().backgroundColor" type="color" value="#fff" style="position:relative;width:24px;top:-1px;">
+                        </a>
+                        <!--<a type="button" class="btn btn-default">Add Shape</a>-->
+                        <a data-bind="click: currentSlide().clearSlide" type="button" class="btn btn-default">
+                            <i class="fa fa-times" aria-hidden="true"></i>&nbsp;Clear Slide
+                        </a>
+                        <br>
+                        <a data-bind="click: currentSlide().cloneCanvas" type="button" class="btn btn-default" style="border:none;width:375px;">
+                            URL (for HTML Banners): <input data-bind="value: currentSlide().URL" type="text" value="" style="width:100%;">
                         </a>
                         <input id="choose-file" type="file" name="imageField" hidden="true" style="display:none;" />
                     </div>
@@ -168,15 +217,15 @@
 
             </div>
         </div>
-        <div>
+        <!--<div>
             width: <input type="text" data-bind="value: swidth"/>, height: 
             <input type="text" data-bind="value: sheight"/> <br>
              width:<span data-bind="text: bannerSize.width"></span>, height: 
             <span data-bind="text: bannerSize.height"></span>
-        </div>
-        <canvas id="canvasp" width="728" height="280" style="width: 728px; height: 280px;">
+        </div>-->
 
-        </canvas>
+        
+
         <img id="mirror" src=""/>
         <!--<footer class="footer">
             <div class="container">
@@ -184,6 +233,7 @@
             </div>
         </footer>-->
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
         <script type='text/javascript' src='js/knockout-3.4.2.js'></script>
         <script src="http://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.7.9/fabric.min.js"></script>
