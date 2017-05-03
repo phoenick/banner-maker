@@ -8,6 +8,19 @@
 -user can create guidelines
 -canvas function moveTo(object, index) related to z order
 -lock x y on object toolbar
+-duplicated text items don't have the right paddings
+-create showModal(x)/hideModal fucntions
+-bandwidth optimization: each object should have a 'saved' field, if it is already
+saved it shouldn't be sent to the server 
+-bandwidth optimization: data urls on fabric objects should be emptied before sending
+and an additional field imgId should point to the image store
+-bandwidth optimization: banner preview on my banners should have small thumbnail, not a downsized
+full image
+-object toolbar: sendTermaRight, sendTermaTop, ..., scaleToTop, scaleToLeft, ...
+-if bannername is changes and is not reverted to the same previous value, then isBannerRegistered has to be false
+-choose the previous/next slide when deleting one
+-on slide previews, there should be a visible index indicating the number of the slide
+-do not register a transform action (move) for tiny mouse movements
 
 Issues:
 -duplicate on multiple selected items doesn't work properly
@@ -28,24 +41,25 @@ function Slide(id, bannerSize, interConf){
     self.interConf = interConf;
     self.selectedObject = ko.observable();
     self.selObjState = null;
-    self.selObjModState = {
+    self.selObjModState = {//not used
         left: 0, top: 0, scaleX: 0, scaleY: 0, angle: 0
     };
     self.slidePreview = null;
     self.dirty = false;
     self.delay = ko.observable(1);
 
-    self.backgroundColor = ko.observable("#fff");
-    self.backgroundColor.subscribe(function(newValue) {
-        self.canvas.setBackgroundColor(newValue).renderAll();
-        self.updateSlidePreview();
-    });
-
     self.URL = ko.observable("http://www.example.com");
 
     self.canvas = new fabric.Canvas(self.$canvasCont.find("canvas")[0], {
         width: bannerSize.width(),
         height: bannerSize.height(),
+    });
+
+    self.backgroundColor = ko.observable("#ffffff");
+    self.canvas.setBackgroundColor(self.backgroundColor()).renderAll();
+    self.backgroundColor.subscribe(function(newValue) {
+        self.canvas.setBackgroundColor(newValue).renderAll();
+        self.updateSlidePreview();
     });
 
     self.incrementDelay = function(){
@@ -57,14 +71,15 @@ function Slide(id, bannerSize, interConf){
         }
     }
 
-    self.cloneCanvas = function(){
-        self.canvas.clone(function(dupcan){
-            console.log(JSON.stringify(dupcan));
-            $("body").append(dupcan).append("hello");
-        });
-    }
+    //issue WHY IS THIS EXECUTED
+    // self.cloneCanvas = function(){//not used
+    //     self.canvas.clone(function(dupcan){
+    //         console.log(JSON.stringify(dupcan));
+    //         $("body").append(dupcan).append("hello");
+    //     });
+    // }
 
-    self.setCanvasJSON = function(canvasJSON){
+    self.setCanvasJSON = function(canvasJSON, callback = null){
         self.canvas.loadFromJSON(canvasJSON, function(){
             var objects = self.canvas.getObjects();
             for(var i = 0; i < objects.length; i++){
@@ -80,6 +95,10 @@ function Slide(id, bannerSize, interConf){
 
             self.canvas.renderAll();
             self.updateSlidePreview();
+
+            if(callback){
+                callback(self.canvas);
+            }
         });
     }
 
@@ -96,7 +115,7 @@ function Slide(id, bannerSize, interConf){
 
     self.undoStack = [];
     self.iundo = ko.observable(-1);
-    self.objectAddedFromRedo = false;
+    self.objectAddedFromRedo = false; //not used
 
     self.undoPush = function(action){
 
@@ -366,6 +385,7 @@ function Slide(id, bannerSize, interConf){
                 //if the object is text
                 if(dupObj.fontFamily){
                     dupObj.on('editing:entered', function(e) { 
+                        dupObj.selectAll();
                         $("#text-edit").show();
                     });
                     dupObj.on('editing:exited', function(e) {
@@ -402,6 +422,14 @@ function Slide(id, bannerSize, interConf){
             self.canvas.add(oImg);
             oImg.bringToFront();
             oImg.center();
+            oImg.bmInitState = {
+                left: oImg.getLeft(),
+                top: oImg.getTop(),
+                scaleX: oImg.getScaleX(),
+                scaleY: oImg.getScaleY(),
+                angle: oImg.getAngle()
+            };
+
             oImg.setCoords();
             self.canvas.setActiveObject(oImg);
 
@@ -441,7 +469,8 @@ function Slide(id, bannerSize, interConf){
             //setLeft(100).setTop(100).scaleToHeight(150);
             iText.set(self.interConf);
             iText.set({padding: 10});
-            iText.on('editing:entered', function(e) { 
+            iText.on('editing:entered', function(e) {
+                iText.selectAll(); 
                 $("#text-edit").show();
             });
             iText.on('editing:exited', function(e) {
@@ -453,6 +482,13 @@ function Slide(id, bannerSize, interConf){
             self.canvas.add(iText);
             iText.bringToFront();
             iText.center();
+            iText.bmInitState = {
+                left: iText.getLeft(),
+                top: iText.getTop(),
+                scaleX: iText.getScaleX(),
+                scaleY: iText.getScaleY(),
+                angle: iText.getAngle()
+            };
             iText.setCoords();
             self.canvas.setActiveObject(iText);
 
@@ -546,9 +582,264 @@ function BannerMakerViewModel(){
         "Georgia", "Palatino", "Times", "Segoe UI", "Arial", "Arial Black", "Impact", "Courier"
     ];
 
-    self.slides = ko.observableArray([]);
+/*
+* === LOGIN REGISTER CODE ===
+*/
+    self.email = ko.observable("");
+    self.password = ko.observable("");
+    self.passwordConfirm = ko.observable("");
+    self.isLoggedIn = ko.observable(false);
 
-    
+    self.bannerName = ko.observable("");
+    self.isBannerRegistered = ko.observable(false); //is banner already saved once in the database
+    self.myBanners = ko.observableArray([]);
+
+    self.login = function(){
+        if(self.email() == "" || self.password() == ""){
+            self.isModalError(true);
+            self.modalErrorMsg("Please fill in all the required fields!");
+            setTimeout(function(){
+                self.isModalError(false);
+            }, 4000); 
+            return;
+        }
+
+        self.loginDo();
+    }
+
+    self.loginDo = function(){
+        $.ajax({
+            type: 'POST',
+            data: JSON.stringify({email: self.email(), password: self.password()}),
+            contentType: 'application/json',
+            url: 'login',
+            success: function(data) {
+                self.getBannerList();
+                self.isLoggedIn(true);
+                self.isModal(false);
+            },
+            error: function(jqXHR, exception) {
+                console.log("ajax error: " + jqXHR.responseText);
+            }
+        });
+    }
+
+    self.register = function(){
+        if(self.password() != self.passwordConfirm()){
+            self.isModalError(true);
+            self.modalErrorMsg("Please make sure that password and password confirm fields match!")
+            setTimeout(function(){
+                self.isModalError(false);
+            }, 4000); 
+            return;
+        }
+        else if(self.email() == "" || self.password() == ""){
+            self.isModalError(true);
+            self.modalErrorMsg("Please fill in all the required fields!");
+            setTimeout(function(){
+                self.isModalError(false);
+            }, 4000); 
+            return;
+        }
+
+         self.registerDo();
+    }
+
+    self.registerDo = function(){
+        $.ajax({
+            type: 'POST',
+            data: JSON.stringify({email: self.email(), password: self.password()}),
+            contentType: 'application/json',
+            url: 'register',
+            success: function(data) {
+                self.isLoggedIn(true);
+                self.isModal(false);
+            },
+            error: function(jqXHR, exception) {
+                console.log("ajax error: " + jqXHR.responseText);
+
+            }
+        });
+    }
+
+    self.bannerToObject = function(){
+        var banner = {
+            email: self.email(),
+            bannerName: self.bannerName(),
+            bannerData:{
+                bannerSize: {
+                    width: self.bannerSize.width(),
+                    height: self.bannerSize.height()
+                },
+                slides: []
+            }
+        };
+
+        ko.utils.arrayForEach(self.slides(), function(si) {
+            console.log("delay: " + si.delay() + ", url: " + si.URL());
+            var slide = {};
+            slide.backgroundColor = si.backgroundColor();
+            slide.delay = si.delay();
+            slide.URL = si.URL();
+            slide.preview = si.slidePreview.img();
+            slide.canvas = si.canvas.toObject();
+
+            banner.bannerData.slides.push(slide);
+        });
+
+        return banner;
+    }
+
+    self.saveBanner = function(){
+
+        if(!self.isLoggedIn()){
+            alert("Please login or register in order to save!");
+            return;
+        }
+        else if(self.bannerName() == ""){
+            alert("Please enter a banner name before saving!");
+            return;
+        }
+
+
+        $.ajax({
+            type: 'POST',
+            data: JSON.stringify({email: self.email(), password: self.password(), bannerName: self.bannerName()}),
+            contentType: 'application/json',
+            url: 'banner-exists',
+            success: function(data) {
+                if(self.isBannerRegistered() || !data.exists){
+                    //console.log(JSON.stringify(self.bannerToObject()));
+                    console.log("hallo");
+                    $.ajax({
+                        type: 'POST',
+                        data: JSON.stringify(self.bannerToObject()),
+                        contentType: 'application/json',
+                        url: 'save-banner',
+                        success: function(data) {
+                            self.isBannerRegistered(true);
+                            self.getBannerList();
+                            //alert("Ok");
+                        },
+                        error: function(jqXHR, exception) {
+                            console.log("ajax error: " + jqXHR.responseText);
+
+                        }
+                    });
+                }
+                else if(data.exists){
+                    alert("A banner with the same name already exists, please choose another one!");
+                }
+            },
+            error: function(jqXHR, exception) {
+                console.log("ajax error: " + jqXHR.responseText);
+
+            }
+        });
+        
+    }
+
+    self.getBannerList = function(){
+        $.ajax({
+            type: 'POST',
+            data: JSON.stringify({email: self.email(), password: self.password()}),
+            contentType: 'application/json',
+            url: 'get-banner-list',
+            success: function(data) {
+                self.myBanners(data);
+            },
+            error: function(jqXHR, exception) {
+                console.log("ajax error: " + jqXHR.responseText);
+
+            }
+        });
+    }
+
+    self.loadBanner = function(bannerName){
+                
+        $.ajax({
+            type: 'POST',
+            data: JSON.stringify({email: self.email(), password: self.password(), bannerName: bannerName}),
+            contentType: 'application/json',
+            url: 'get-banner',
+            success: function(data) {
+                self.isBannerRegistered(true);
+                var bannerData = data.bannerData;
+                //self.bannerSize.width(bannerData.bannerSize.width);
+                //self.bannerSize.height(bannerData.bannerSize.height);
+                //self.selectedBannerSize(self.bannerSize.width() + ' x ' + self.bannerSize.height()); //issue not supporting custom size
+                self.bannerName(data.bannerName);
+
+                self.slides.removeAll();
+
+                var newSlides = []; 
+                
+                var slidesL = bannerData.slides;
+                console.log("length: " + slidesL.length);
+                
+                // var newSlide = new Slide(self.newSlideId(), self.bannerSize, self.interConf);
+                // var newSlidePreview = new SlidePreview(self.bannerSize);
+                // newSlide.setSlidePreview(newSlidePreview);
+
+                // self.slides.push(newSlide);
+
+                // newSlide = new Slide(self.newSlideId(), self.bannerSize, self.interConf);
+                // newSlidePreview = new SlidePreview(self.bannerSize);
+                // newSlide.setSlidePreview(newSlidePreview);
+
+                //self.slides.push(newSlide);
+                
+                for(var i = 0; i < slidesL.length; i++){
+                    var newSlide = new Slide(self.newSlideId(), self.bannerSize, self.interConf);
+                    var newSlidePreview = new SlidePreview(self.bannerSize);
+                    newSlide.setSlidePreview(newSlidePreview);
+                    newSlide.backgroundColor(slidesL[i].backgroundColor);
+                    newSlide.delay(slidesL[i].delay);
+                    newSlide.URL(slidesL[i].URL);
+                    newSlide.setCanvasJSON(JSON.stringify(slidesL[i].canvas), function(canvas){
+                        var objects = canvas.getObjects();
+                        for(var i = 0; i < objects.length; i++){
+                            if(objects[i].fontFamily){
+                                objects[i].on('editing:entered', function(e) {
+                                    //objects[i].selectAll(); //issue - doesn't work , objects[i] not working too
+                                    $("#text-edit").show();
+                                });
+                                objects[i].on('editing:exited', function(e) {
+                                    self.updateSlidePreview(); //possible issue
+                                    $("#text-edit").hide();
+                                });
+                            }
+                        }
+                    });
+
+                    
+
+                    self.slides.push(newSlide);
+                    //self.setCurrentSlide(i);
+                    console.log("how many...");
+                }
+                //self.slides(newSlides);
+                self.setCurrentSlide(0);
+            },
+            error: function(jqXHR, exception) {
+                console.log("ajax error: " + jqXHR.responseText);
+            }
+        });
+
+        var slide = new Slide(self.newSlideId(), self.bannerSize, self.interConf);
+        var slidePreview = new SlidePreview(self.bannerSize);
+        slide.setSlidePreview(slidePreview);
+        
+        self.slides([]);
+        self.slides.push(slide);
+
+        self.currentSlide(slide);
+        self.icurSlide(0);
+    }
+/*
+* === SLIDE INITIALIZATION CODE ===
+*/
+    self.slides = ko.observableArray([]);
 
     var slide = new Slide(self.newSlideId(), self.bannerSize, self.interConf);
     var slidePreview = new SlidePreview(self.bannerSize);
@@ -583,19 +874,32 @@ function BannerMakerViewModel(){
 
     }
 
+    self.deleteCurrentSlide = function(curSlide){
+
+        if(confirm("If you delete this slide, you can't get it back. Do you still want to delete it?")){
+            self.slides.remove(curSlide);
+            self.setCurrentSlide(0); //todo
+        }
+
+    }
+
     self.duplicateCurrentSlide = function(){
         var slide = new Slide(self.newSlideId(), self.bannerSize, self.interConf);
         var slidePreview = new SlidePreview(self.bannerSize);
         slide.setSlidePreview(slidePreview);
         slide.setCanvasJSON(self.currentSlide().getCanvasJSON());
-
+        slide.delay = self.currentSlide().delay;
         self.slides.splice(self.icurSlide() + 1, 0, slide);
 
         self.selectSlide(slide);
+
+        //this code should be moved into slide.setCanvasJSON()
         var objects = self.currentSlide().canvas.getObjects();
         for(var i = 0; i < objects.length; i++){
             if(objects[i].fontFamily){
-                objects[i].on('editing:entered', function(e) { 
+                objects[i].on('editing:entered', function(e) {
+                    var obj = objects[i]; 
+                    //obj.selectAll(); //issue whaaaaa- e target doesn't work , objects[i] not working too
                     $("#text-edit").show();
                 });
                 objects[i].on('editing:exited', function(e) {
@@ -605,6 +909,8 @@ function BannerMakerViewModel(){
             }
         }
     }
+
+    
 
     self.updateSlidePreview = function(){
         self.currentSlide().updateSlidePreview(); //possible issue
@@ -664,8 +970,8 @@ function BannerMakerViewModel(){
                 break;
         }
     }
-    self.textColor = ko.observable("#000");
-    self.textBgColor = ko.observable("#fff");
+    self.textColor = ko.observable("#000000");
+    self.textBgColor = ko.observable("#ffffff");
     self.textColor.subscribe(function(newValue) {
         self.setStyle(self.currentSlide().selectedObject(), 'fill', newValue);
         self.currentSlide().canvas.renderAll();
@@ -705,6 +1011,168 @@ function BannerMakerViewModel(){
            //updateSortOrder
         }
     });
+
+    self.isModal = ko.observable(true);
+    self.modalNo = ko.observable(1);
+
+    $(".modal-content").hide();
+    $(".modal1").show();
+    $(".modal").show();
+
+    self.isModalError = ko.observable(false);
+    self.modalErrorMsg = ko.observable("");
+    
+    self.isCustomSize = ko.observable(false);
+    self.suggestedBannerSizes = ko.observableArray([
+        "728 x 280", "728 x 90", "468 x 60", "336 x 280", "300 x 250", "Custom..."
+    ]);
+    self.selectedBannerSize = ko.observable(self.suggestedBannerSizes[0]);
+    self.customBannerSize = {
+        width: ko.observable(""),
+        height: ko.observable("")
+    }
+    self.selectedBannerSize.subscribe(function(newValue){
+        if(newValue == "Custom..."){
+            self.isCustomSize(true);
+        }
+        else{
+            self.isCustomSize(false);
+        }
+    });
+
+    self.createNewBanner = function(){
+        var okToCreate = false;
+        if(self.isCustomSize()){
+            
+            if( self.customBannerSize.width() == "" ||
+                self.customBannerSize.height() == "" ||
+                isNaN(self.customBannerSize.width()) ||
+                isNaN(self.customBannerSize.height()) ) 
+            {
+                self.isModalError(true);
+                self.modalErrorMsg("Please provide valid numbers for the custom banner width and height!")
+                setTimeout(function(){
+                    self.isModalError(false);
+                }, 4000); 
+            }
+            else{
+                self.bannerSize.width( parseInt(self.customBannerSize.width(), 10) );
+                self.bannerSize.height( parseInt(self.customBannerSize.height(), 10) );
+                var newSelectedSize = self.customBannerSize.width() + " x " + self.customBannerSize.height();
+                self.suggestedBannerSizes.unshift(newSelectedSize);
+                self.selectedBannerSize(newSelectedSize);
+                okToCreate = true;
+            }
+        }
+        else{
+            var parts = self.selectedBannerSize().split(" ");
+            self.bannerSize.width( parseInt(parts[0], 10) );
+            self.bannerSize.height( parseInt(parts[2], 10) );
+            okToCreate = true;
+        }
+
+        if(okToCreate){
+            var slide = new Slide(self.newSlideId(), self.bannerSize, self.interConf);
+            var slidePreview = new SlidePreview(self.bannerSize);
+            slide.setSlidePreview(slidePreview);
+            
+            self.slides([]);
+            self.slides.push(slide);
+
+            self.currentSlide(slide);
+            self.icurSlide(0);
+
+            self.isModal(false);
+        }
+        
+    }
+
+    self.changeBannerSize = function(){
+        console.log("Heeeeey");
+        self.modalNo(2);
+        self.isModal(true);
+    }
+
+    self.downloadBanner = function(type){
+        var simgs = [];
+        var delays = [];
+        var urls = [];
+        var $slideImgs = $(".slide-img");
+        var ilength = $slideImgs.length;
+        for (var i = 0; i < ilength; i++) {
+            if($($slideImgs[i]).parent().parent().parent().find(".include-box")[0].checked){
+                simgs.push($slideImgs[i]);
+                var delay = parseInt($($slideImgs[i]).parent().parent().parent().find(".delay-val").text());
+                delays.push(delay*1000);
+                urls.push(self.slides()[i].URL()); //issue: will be corrected when the sorting order is fixed
+            }
+        }
+
+        if(type == "gif"){
+            var gif = new GIF({
+                workers: 2,
+                quality: 1,
+                width: self.bannerSize.width(),
+                height: self.bannerSize.height()
+            });
+
+            for (var i = 0; i < simgs.length; i++) {
+                gif.addFrame(simgs[i], {delay: delays[i]});
+            }
+
+            gif.on('finished', function(obj) {
+                $('#download-banner').attr({ href: URL.createObjectURL(obj)})[0].click();
+            });
+            gif.render();
+        }
+        else if(type == "html"){
+            var htmlBanner = "";
+            htmlBanner += '<div style="margin:0px;padding:0px;position:relative;';
+            htmlBanner += 'width:' + self.bannerSize.width() + 'px;height:' + self.bannerSize.height() + 'px;">'
+            for (var i = 0; i < simgs.length; i++) {
+                htmlBanner += '<img id="bframe' + i + '" class="bframe" src="' + simgs[i].src + '" style="width:100%;height:100%;display:none;">\n';
+            }
+            htmlBanner += '<a id="conferience-banner-url" href="javascript:;" target="_blank" style="display:inline-block;position:absolute;top:0px;left:0px;width:100%;height:100%;"> </a>';
+            htmlBanner += '</div>';
+            htmlBanner += "<script>";
+            htmlBanner += "(function(){ var num = " + simgs.length + ";";
+            htmlBanner += "var delays = [" + delays.join(',') + "];";
+            htmlBanner += 'var urls = ["' + urls.join('","') + '"];';
+            htmlBanner +=`
+
+                    var imgs = document.getElementsByClassName("bframe");
+                    var index = 0;
+
+                    function displayFrame(i){
+                        document.getElementById("conferience-banner-url").href = urls[i];
+                        for(var k = 0; k < imgs.length; k++){
+                            imgs[k].style.display = "none";
+                        }
+                        imgs[i].style.display = "inline";
+                        index++;
+                        if(index == num){
+                            index = 0;
+                        }
+                        var prev = index - 1;
+                        var locali = index;
+                        if(prev == -1) {prev = num - 1;}
+                        setTimeout(function(){
+                            displayFrame(index);
+                            document.getElementById("conferience-banner-url").href = urls[locali];
+                        }, delays[prev]);
+
+                    }
+                    displayFrame(index);
+                })();
+                </script>
+            `;
+
+            self.modalNo(3);
+            self.isModal(true);
+            $("#html-banner").text(htmlBanner);
+            $("#html-banner").select();
+        }
+    }
 
     // setTimeout(function(){
     //     var canvas = document.getElementById('bm-canvas-0');

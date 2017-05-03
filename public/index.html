@@ -65,22 +65,40 @@
                 <div class="col-md-8">
                     <form class="navbar-form navbar-left save-form" role="search">
                         <div class="form-group">
-                            <input type="text" class="form-control" placeholder="Untitled Banner">
+                            <input data-bind="value: bannerName" type="text" class="form-control" placeholder="Untitled Banner">
                         </div>
-                        <a class="btn btn-success">Save</a>
+                        <a data-bind="click: saveBanner" class="btn btn-success">Save</a>
                         <div class="dropdown" style="display:inline-block;">
                             <a class="btn btn-success dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                                 Download Banner
                                 <span class="caret"></span>
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="dropdownMenu2">
-                                <li><a href="#">as GIF</a></li>
-                                <li><a href="#">as HTML</a></li>
+                                <li><a data-bind="click: downloadBanner.bind($data, 'gif')" href="javascript:;">as GIF</a></li>
+                                <li><a data-bind="click: downloadBanner.bind($data, 'html')" href="javascript:;">as HTML</a></li>
                             </ul>
                         </div>
                     </form>
-                    <div id="navbar" class="navbar-collapse collapse">
-                        <!--<ul class="nav navbar-nav">
+                    <form class="navbar-form navbar-right save-form" role="search">
+                        <a data-bind="visible: !isLoggedIn(), click: function(data, event){modalNo(5);isModal(true);}" class="btn btn-primary user-control">Login</a>
+                        <a data-bind="visible: !isLoggedIn(), click: function(data, event){modalNo(4);isModal(true);}" class="btn btn-primary user-control">Register</a>
+                        
+                        <div class="btn" style="display:inline-block;font-size:16px;">
+                            <i class="fa fa-user" aria-hidden="true" style="color: #2e9abd;"></i>&nbsp;
+                            <span data-bind="visible: isLoggedIn(), text: email" style="color: #ccc;"></span>
+                        </div>
+                        <div class="dropdown" style="display:inline-block;">
+                            <a data-bind="visible: isLoggedIn()" class="btn btn-primary dropdown-toggle user-control" type="button" id="dropdownMenu4" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                My Banners
+                                <span class="caret"></span>
+                            </a>
+                            <ul data-bind="foreach: myBanners" class="dropdown-menu" aria-labelledby="dropdownMenu4">
+                                <li><a data-bind="text: bannerName, click: $root.loadBanner.bind($data, bannerName)" href="javascript:;"> a banner name</a></li>
+                            </ul>
+                        </div>
+                    </form>
+                    <!--<div id="navbar" class="navbar-collapse collapse">
+                        <ul class="nav navbar-nav">
                             <li class="active"><a href="#">Home</a></li>
                             <li><a href="#about">About</a></li>
                             <li><a href="#contact">Contact</a></li>
@@ -96,13 +114,8 @@
                                 <li><a href="#">One more separated link</a></li>
                             </ul>
                             </li>
-                        </ul>-->
-                        <ul class="nav navbar-nav navbar-right">
-                            <li><a href="../navbar/">Default</a></li>
-                            <li class="active"><a href="./">Static top <span class="sr-only">(current)</span></a></li>
-                            <li><a href="../navbar-fixed-top/">Fixed top</a></li>
                         </ul>
-                </div>
+                    </div>-->
                 
                 </div><!--/.nav-collapse -->
             </div>
@@ -119,7 +132,7 @@
                             <div data-bind="with: $data.slidePreview, click: $root.selectSlide" class="slide-thumb">
                                 <span data-bind="with: dimensions">
                                     <img data-bind="style: {width: width, height: height, top: top, left: left}, attr: { src: $parent.img }" 
-                                            style="width:100px;height:50px;position:absolute;" >
+                                            style="width:100px;height:50px;position:absolute;" class="slide-img">
                                 </span>
 
                             </div>
@@ -134,7 +147,7 @@
                                         Duplicate
                                     </a><a class="btn btn-default btn-sm btn-delay" href="javascript:;" role="button">
                                     Delay: 
-                                    <i data-bind="text: delay" class="delay-val">1</i>s
+                                    <span data-bind="text: delay" class="delay-val" style="color:dodgerblue;font-weight:bold;">1</span>s
                                 </a><a data-bind="click: incrementDelay" class="btn btn-default btn-sm btn-delay-up" role="button"> +</a><a data-bind="click: decrementDelay" class="btn btn-default btn-sm btn-delay-down" role="button"> -</a>
                             </p>
                             <hr>
@@ -146,7 +159,14 @@
                 </div>
 
                 <div class="col-md-8">
-                    <h3> Slide Editor: <span data-bind="text: 'Slide ' + (icurSlide()+1)" style="color: grey"> </span></h3> <hr>
+                    <h3 style="position: relative;"> 
+                        Slide Editor: <span data-bind="text: 'Slide ' + (icurSlide()+1)" style="color: grey"> </span>
+                        <div style="display:inline-block;position:absolute;right:10px;top:-8px;font-size:20px;"><span style="color:gray;"> size:</span>
+                           <select data-bind="options: suggestedBannerSizes, value: selectedBannerSize, event: {change: changeBannerSize}" class="form-control" id="select-size2" style="">
+                        
+                            </select>
+                        </div>
+                    </h3> <hr>
                     <div class="text-center">
                         <div class="nbtn-group object-toolbar" style="margin-bottom: 18px;">
                             <a data-bind="click: currentSlide().undo, css: { disabled: currentSlide().iundo() < 0 }" type="button" class="btn btn-default"><i class="fa fa-rotate-left" aria-hidden="true"></i>&nbsp;Undo</a>
@@ -155,7 +175,7 @@
                             <a data-bind="css: { disabled: currentSlide().selectedObject() == null }" type="button" class="btn btn-default">Original Size</a>
                             <a data-bind="click: currentSlide().duplicateSelectedObject, css: { disabled: currentSlide().selectedObject() == null }" type="button" class="btn btn-default">Duplicate</a>
                             <a data-bind="text: currentSlide().iundo() +', ' + currentSlide().undoStack.length , css: { disabled: currentSlide().selectedObject() == null }" type="button" class="btn btn-default">Group</a>
-                            <a data-bind="click: currentSlide().deleteSelectedObject, css: { disabled: currentSlide().selectedObject() == null }" type="button" class="btn btn-default"><i class="fa fa-times" aria-hidden="true"></i>&nbsp;Delete</a>
+                            <a data-bind="click: currentSlide().deleteSelectedObject, css: { disabled: currentSlide().selectedObject() == null }" type="button" class="btn btn-default"><i class="fa fa-times" style="color: darkred;" aria-hidden="true"></i>&nbsp;Delete</a>
                         </div> 
                     </div>
                       
@@ -223,8 +243,105 @@
              width:<span data-bind="text: bannerSize.width"></span>, height: 
             <span data-bind="text: bannerSize.height"></span>
         </div>-->
+        <a id="download-banner" class="btn" download="banner.gif" href="javascript:;" style="display:none;">Download Banner utility link</a>
+        <div data-bind="visible: isModal" id="myModal" class="modal">
+            <div class="modal-content modal1">
+                <h3 data-bind="visible: modalNo() == 1"> Create a new banner </h3>
+                <h3 data-bind="visible: modalNo() == 2" class="warning" > Do you want to save this banner? </h3>
+                <h3 data-bind="visible: modalNo() == 3"> Html Banner </h3>
+                <h3 data-bind="visible: modalNo() == 4"> Register </h3>
+                <h3 data-bind="visible: modalNo() == 5"> Login </h3>
+                <hr/>
+                <!-- <span class="close">&times;</span>-->
+                <p data-bind="visible: isModalError, html: modalErrorMsg" class="suggest attention">
+                    
+                    Changing the size will create a new banner and the old one will be deleted! <br>
+                    If you don't want to lose the current banner, please save it first.
+                </p>
+                <p data-bind="visible: modalNo() == 1" class="suggest">Please choose a <b>size</b> for the new banner:
+                    <select data-bind="options: suggestedBannerSizes, value: selectedBannerSize" class="form-control" id="select-size" style="">
+                        
+                    </select>
+                    <input data-bind="visible: isCustomSize, value: customBannerSize.width" type="text" class="form-control dim" style="ndisplay:none;" placeholder="width">
+                    <span data-bind="visible: isCustomSize" class="times">x</span>
+                    <input data-bind="visible: isCustomSize, value: customBannerSize.height" type="text" class="form-control dim" style="ndisplay:none;"placeholder="height">
+                </p>
+                <p data-bind="visible: modalNo() == 2" class="suggest">
+                    Changing size will close this banner and create a new one. If you don't save your changes will be lost.
+                    You can save this banner or download it.
+                </p>
+                <p data-bind="visible: modalNo() == 3" class="suggest">
+                    Just copy this html code and insert it to the webpage of your liking: <br><br>
+                    <textarea id="html-banner" rows="4" style="width: 550px;">
 
-        
+                    </textarea>
+                </p>
+                <p data-bind="visible: modalNo() == 4" class="suggest">
+                    By registering an account for free, you get access to the full features of Banner Maker. Please provide a valid email. <br>
+                </p>
+                
+                <div data-bind="visible: modalNo() == 4" class="suggest register-form" style="text-align:center">
+                    
+                    <table style="width: 405px; margin:0 auto; padding: 5px;">
+                    <tr>
+                        <td style="text-align:right;font-weight: 600;">your email: &nbsp</td>
+                        <td> <input data-bind="value: email" type="text" class="form-control" placeholder="email" ></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:right;font-weight: 600;"> password: &nbsp</td>
+                        <td> <input data-bind="value: password" type="password" class="form-control" placeholder="password" ></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:right;font-weight: 600;"> confirm password: &nbsp</td>
+                        <td><input data-bind="value: passwordConfirm" type="password" class="form-control" placeholder="confirm password" ></td>
+                    </tr>
+                    <!--<tr>
+                        <td style="text-align:right;font-weight: bold;"> email: &nbsp</td>
+                        <td> <input id="email-register" type="text" class="form-control" placeholder="email" > </td>
+                    </tr>-->
+                    </table>
+                </div>
+                
+                 <p data-bind="visible: modalNo() == 5" class="suggest" style="text-align:center">
+                    <input data-bind="value: email" type="text" class="form-control" placeholder="Email" style="display:inline-block;width:250px;font-size:16px;" > &nbsp
+                    <input data-bind="value: password" type="password" class="form-control" placeholder="Password" style="display:inline-block;width:250px;font-size:16px;" >
+                    
+                </p>
+
+                <!--<p class="suggest">Please choose a <b>name</b> for the new banner:
+                <input id="new-banner-name" type="text" class="form-control dim" style="width: 155px;" placeholder="new banner name">
+                </p>-->
+                <hr/>
+                <p>
+                    <a data-bind="click: createNewBanner, visible: modalNo() == 1" id="nbegin-editing" class="btn btn-primary btn-lg" style="float: right;" role="button">Create Banner</a>
+                    <a data-bind="click: function(data, event) { isModal(false);selectedBannerSize(bannerSize.width()+' x '+bannerSize.height()); }, visible: modalNo() == 1" class="btn btn-default btn-lg" style="float: right;text-shadow:none;" role="button">Cancel</a>
+
+                    <div data-bind="visible: modalNo() == 2" class="dropdown" style="display:inline-block; float:right;">
+                        <a class="btn btn-primary btn-lg dropdown-toggle" type="button" id="dropdownMenu3" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                            Download
+                            <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownMenu3" style="font-size: 16px;">
+                            <li><a data-bind="click: downloadBanner.bind($data, 'gif')" href="javascript:;">as GIF</a></li>
+                            <li><a data-bind="click: downloadBanner.bind($data, 'html')" href="javascript:;">as HTML</a></li>
+                        </ul>
+                    </div>
+                    <a data-bind="click: modalNo(1), visible: modalNo() == 2" class="btn btn-primary btn-lg" style="float: right;" role="button">Save</a>
+                    <a data-bind="click: modalNo(1), visible: modalNo() == 2" class="btn btn-default btn-lg" style="float: right;text-shadow:none;" role="button">No</a>
+                    <a id="" class="btn btn-secondary cancel-create hidden" style="float: right;" href="javascript:;" role="button">Cancel</a>
+
+                    <a data-bind="click: function(data, event) { isModal(false); }, visible: modalNo() == 3" class="btn btn-primary btn-lg" style="float: right;" role="button">Ok</a>
+                    
+                    <a data-bind="click: register, visible: modalNo() == 4" class="btn btn-primary btn-lg" style="float: right;" role="button">Register</a>
+                    <a data-bind="click: function(data, event) { isModal(false); }, visible: modalNo() == 4" class="btn btn-default btn-lg" style="float: right;text-shadow:none;" role="button">Cancel</a>
+
+                    <a data-bind="click: login, visible: modalNo() == 5" class="btn btn-primary btn-lg" style="float: right;" role="button">Login</a>
+                    <a data-bind="click: function(data, event) { isModal(false); }, visible: modalNo() == 5" class="btn btn-default btn-lg" style="float: right;text-shadow:none;" role="button">Cancel</a>
+                </p>
+                <div style="clear:both;"></div>
+            </div>
+        </div>
+
 
         <img id="mirror" src=""/>
         <!--<footer class="footer">
@@ -237,6 +354,7 @@
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
         <script type='text/javascript' src='js/knockout-3.4.2.js'></script>
         <script src="http://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.7.9/fabric.min.js"></script>
+        <script type='text/javascript' src="js/gif.js"></script>
 
         <script type='text/javascript' src='js/bannerMakerViewModel.js'></script>
     </body>
